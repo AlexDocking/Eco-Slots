@@ -12,29 +12,19 @@ using Eco.Shared.Localization;
 using Eco.Shared.Utils;
 using Eco.Core.Controller;
 using Eco.Core.Utils;
-using Eco.Gameplay.Utils;
 using System.ComponentModel;
-using Eco.Shared.Networking;
-using Eco.Gameplay.Components;
-using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
-using Eco.Gameplay.Systems;
-using Eco.Gameplay.Modules;
-using Eco.Gameplay.DynamicValues;
-using Eco.Core.Items;
-using Eco.Mods.TechTree;
-using Eco.Gameplay.Systems.TextLinks;
+using Eco.Shared.Items;
+using Eco.Gameplay.Systems.NewTooltip;
 
 namespace KitchenUnits
 {
-
-    
     [NoIcon]
     [Serialized]
     [RequireComponent(typeof(PropertyAuthComponent))]
     [RequireComponent(typeof(PartsContainerComponent))]
     [RequireComponent(typeof(ModelPartColourComponent))]
     [RequireComponent(typeof(PartColoursUIComponent))]
-    public class KitchenCupboardObject : WorldObject, IRepresentsItem
+    public class KitchenCupboardObject : WorldObject, IRepresentsItem, IThreadSafeSubscriptions
     {
         public Type RepresentedItemType => typeof(KitchenCupboardItem);
         protected override void Initialize()
@@ -44,56 +34,66 @@ namespace KitchenUnits
             if (partsContainer.Parts.Count != 3)
             {
                 Log.WriteLine(Localizer.DoStr("Adding parts"));
-                partsContainer.AddPart(new Slot(), new KitchenCupboardUnit());
-                partsContainer.AddPart(new Slot(), new KitchenCupboardDoor());
-                partsContainer.AddPart(new Slot(), new KitchenCupboardWorktop());
+                partsContainer.AddPart(new Slot(), new KitchenCupboardUnitItem());
+                partsContainer.AddPart(new Slot(), new KitchenCupboardDoorItem());
+                partsContainer.AddPart(new Slot(), new KitchenCupboardWorktopItem());
             }
-
         }
     }
 
     [Serialized]
-    public class KitchenCupboardItem : WorldObjectItem<KitchenCupboardObject>
+    public class KitchenCupboardItem : WorldObjectItem<KitchenCupboardObject>, IPersistentData
     {
+        [Serialized, NewTooltip(CacheAs.Instance)]
+        public object PersistentData { get; set; }
     }
 
     [Serialized]
-    public class KitchenCupboardUnit : Part
+    [LocDisplayName("Kitchen Cupboard Unit")]
+    public class KitchenCupboardUnitItem : Item, IUniqueStackable, IPart, IHasModelPartColourComponent
     {
-        public KitchenCupboardUnit()
+        public KitchenCupboardUnitItem() : base()
         {
-            Name = "KitchenCupboardUnit";
-            DisplayName = "Unit";
-            SetAttribute("PartColouring", new ModelPartColouring()
-            {
-                ModelName = "Unit",
-            });
+            ColourData.ModelName = "Unit";
+        }
+        [Serialized] public ModelPartColouring ColourData { get; set; } = new ModelPartColouring();
+        [SyncToView] public string Colour => ColorUtility.RGBHex(ColourData.Colour.HexRGBA);
+
+        string IPart.DisplayName => "Unit";
+
+        public bool CanStack(Item stackingOntoItem)
+        {
+            if (stackingOntoItem?.GetType() != typeof(KitchenCupboardUnitItem)) return false;
+            KitchenCupboardUnitItem kitchenCupboardItem = (KitchenCupboardUnitItem)stackingOntoItem;
+            return kitchenCupboardItem.ColourData.Colour == ColourData.Colour;
         }
     }
     [Serialized]
-    public class KitchenCupboardDoor : Part
+    [LocDisplayName("Kitchen Cupboard Door")]
+    public class KitchenCupboardDoorItem : Item, IPart, IHasModelPartColourComponent
     {
-        public KitchenCupboardDoor()
+        public KitchenCupboardDoorItem() : base()
         {
-            Name = "KitchenCupboardDoor";
-            DisplayName = "Door";
-            SetAttribute("PartColouring", new ModelPartColouring()
-            {
-                ModelName = "Door",
-            });
+            ColourData.ModelName = "Door";
         }
+
+        [Serialized] public ModelPartColouring ColourData { get; private set; } = new ModelPartColouring();
+        //[SyncToView, LocDisplayName("Colour"), DependsOnSubMember(nameof(ColourData), nameof(ModelPartColouring.Colour))] public string Colour => ColorUtility.RGBHex(ColourData.Colour.HexRGBA);
+
+        string IPart.DisplayName => "Door";
     }
     [Serialized]
-    public class KitchenCupboardWorktop : Part
+    [LocDisplayName("Kitchen Cupboard Worktop")]
+    public class KitchenCupboardWorktopItem : Item, IPart, IHasModelPartColourComponent
     {
-        public KitchenCupboardWorktop()
+        public KitchenCupboardWorktopItem() : base()
         {
-            Name = "KitchenCupboardWorktop";
-            DisplayName = "Worktop";
-            SetAttribute("PartColouring", new ModelPartColouring()
-            {
-                ModelName = "Worktop",
-            });
+            ColourData.ModelName = "Worktop";
         }
+
+        [Serialized] public ModelPartColouring ColourData { get; private set; } = new ModelPartColouring();
+        //[SyncToView, LocDisplayName("Colour"), DependsOnSubMember(nameof(ColourData), nameof(ModelPartColouring.Colour))] public string Colour => ColorUtility.RGBHex(ColourData.Colour.HexRGBA);
+
+        string IPart.DisplayName => "Worktop";
     }
 }

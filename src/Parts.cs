@@ -1,5 +1,7 @@
 ﻿using Eco.Core.Controller;
 using Eco.Core.Plugins.Interfaces;
+using Eco.Core.Properties;
+using Eco.Core.PropertyHandling;
 using Eco.Core.Serialization.Migrations;
 using Eco.Core.Serialization.Migrations.Attributes;
 using Eco.Core.Systems;
@@ -7,6 +9,8 @@ using Eco.Core.Utils;
 using Eco.Gameplay.Economy;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
+using Eco.Gameplay.Systems.NewTooltip;
+using Eco.Gameplay.Systems.TextLinks;
 using Eco.Gameplay.Utils;
 using Eco.Mods.TechTree;
 using Eco.Shared.Gameplay;
@@ -14,10 +18,12 @@ using Eco.Shared.Localization;
 using Eco.Shared.Networking;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
+using Eco.Shared.View;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+
 namespace Parts
 {
     public static class ColorUtility
@@ -55,80 +61,32 @@ namespace Parts
             return null;
         }
     }
-    public class PartAttributeChangeArgs
-    {
-        public Part Part { get; init; }
-        public string Attribute { get; init; }
-        public object OldValue { get; init; }
-        public object NewValue { get; init; }
-    }
     [Serialized]
     public interface IPart
     {
-        public string Name { get; }
         public string DisplayName { get; }
-        T GetAttribute<T>(string attributeName);
-        object GetAttribute(string attributeName);
-        bool HasAttribute(string attributeName);
-        void SetAttribute(string attributeName, object value);
-        public ThreadSafeAction<PartAttributeChangeArgs> OnChanged { get; }
-    }
-    [Serialized]
-    public class Part : IPart
-    {
-        [Serialized]
-        public string Name { get; init; }
-        [Serialized]
-        public string DisplayName { get; init; }
-        [Serialized]
-        private ThreadSafeDictionary<string, object> Attributes { get; set; } = new ThreadSafeDictionary<string, object>();
-        public bool HasAttribute(string attributeName) => Attributes.ContainsKey(attributeName);
-        public T GetAttribute<T>(string attributeName) => (Attributes.TryGetValue(attributeName, out object value) && value is T t) ? t : default;
-        public object GetAttribute(string attributeName) => Attributes.TryGetValue(attributeName, out object value) ? value : null;
-        public void SetAttribute(string attributeName, object value)
-        {
-            if (HasAttribute(attributeName))
-            {
-                object oldValue = GetAttribute(attributeName);
-                bool changed = oldValue != value;
-                Attributes[attributeName] = value;
-                if (changed)
-                {
-                    OnChanged.Invoke(new PartAttributeChangeArgs()
-                    {
-                        Part = this,
-                        Attribute = attributeName,
-                        OldValue = oldValue,
-                        NewValue = value
-                    });
-                }
-            }
-            else
-            {
-                Attributes.Add(attributeName, value);
-            }
-        }
-        public ThreadSafeAction<PartAttributeChangeArgs> OnChanged { get; } = new ThreadSafeAction<PartAttributeChangeArgs>();
-        
     }
     
     [Serialized]
     public class Slot
     {
-        public string Name { get; set; }
+        [SyncToView] public string Name { get; set; }
+        [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory { get; set; } = new AuthorizationInventory(1);
     }
     [Serialized]
-    public class PartsContainer
+    public class PartsContainer : IController, INotifyPropertyChanged
     {
-        [Serialized]
-        private ThreadSafeList<IPart> parts = new ThreadSafeList<IPart>();
-        public IReadOnlyList<IPart> Parts => parts.AsReadOnly();
+        [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public string Name { get; set; } = "Serialized Name";
+        public IReadOnlyList<IPart> Parts => Slots.SelectNonNull(slot => slot.Inventory.Stacks.FirstOrDefault()?.Item).OfType<IPart>().ToList();
         [Serialized]
         private ThreadSafeList<Slot> slots = new ThreadSafeList<Slot> ();
-        public IReadOnlyList<Slot> Slots => slots.AsReadOnly();
-        public void AddPart(Slot slot, Part part)
+        [SyncToView, NewTooltipChildren(Eco.Shared.Items.CacheAs.Disabled)]
+        public LocString CurrentPartsListDescription => Localizer.DoStr("Contains parts:").AppendLine(Parts.Select(part => part.UILinkGeneric()).NewlineList());
+        public IReadOnlyList<Slot> Slots => slots.Snapshot.AsReadOnly();
+        public void AddPart(Slot slot, IPart part)
         {
-            parts.Add(part);
+            if (part is not Item partItem) return;
+            slot.Inventory.AddItem(partItem);
             slots.Add(slot);
         }
         public void RemovePart(Slot slot)
@@ -137,59 +95,84 @@ namespace Parts
             if (index >= 0)
             {
                 slots.RemoveAt(index);
-                parts.RemoveAt(index);
             }
         }
+        #region IController
+        private int id;
+
+        public ref int ControllerID => ref id;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        #endregion
     }
     [Serialized]
     [NoIcon]
     public class PartsContainerComponent : WorldObjectComponent, IPersistentData
     {
-        [Serialized]
-        public PartsContainer PartsContainer { get; private set; } = new PartsContainer();
+        public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
+
+        [Serialized, SyncToView, NewTooltipChildren(Eco.Shared.Items.CacheAs.Disabled)]
+        public PartsContainer PartsContainer { get; set; } = new PartsContainer();
         public object PersistentData
         {
             get => PartsContainer; set
             {
-                Log.WriteLine(Localizer.DoStr($"Deserialized persistent data. Null? {(value as PartsContainer) == null}"));
                 PartsContainer = value as PartsContainer ?? new PartsContainer();
+                Log.WriteLine(Localizer.DoStr($"Deserialized persistent data. Null? {(value as PartsContainer) == null}"));
+            }
+        }
+        public override void Initialize()
+        {
+            IReadOnlyList<Slot> slots = PartsContainer.Slots;
+            IReadOnlyList<IPart> parts = PartsContainer.Parts;
+            Log.WriteLine(Localizer.DoStr($"Slots {slots.Count}, parts {parts.Count}"));
+            for (int i = 0; i < parts.Count; i++)
+            {
+                Log.WriteLine(Localizer.DoStr($"Slot {i}: {slots[i].Inventory.NonEmptyStacks.FirstOrDefault()?.Item.Name}"));
+                Log.WriteLine(Localizer.DoStr($"Part {i}: {parts[i].DisplayName}"));
             }
         }
     }
     [Serialized]
-    public class ModelPartColouring : INotifyPropertyChanged
+    public class ModelPartColouring : IController, INotifyPropertyChanged
     {
         [Serialized]
-        private string modelName = "";
+        public string ModelName { get; set; }
         [Serialized]
-        private Color colour;
-        [Notify]
-        public string ModelName
-        {
-            get => modelName; set
-            {
-                modelName = value;
-            }
-        }
-        [Notify]
         public Color Colour
         {
             get => colour; set
             {
                 colour = value;
-                this.PropertyChanged(this, new PropertyChangedEventArgs(nameof(Colour)));
+                this.Changed(nameof(Colour));
             }
         }
+
+        public ModelPartColouring()
+        {
+            PropertyChanged += OnPropertyChanged;
+        }
+
+        public void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+        {
+            Log.WriteLine(Localizer.DoStr("Detected change in " + args.PropertyName));
+        }
+        #region IController
+        private int id;
+        public ref int ControllerID => ref id;
+
         public event PropertyChangedEventHandler PropertyChanged;
+        #endregion
+        public ref ThreadSafeSubscriptions Subscriptions => ref this.subscriptions; ThreadSafeSubscriptions subscriptions;
+        private Color colour;
     }
     [Serialized, AutogenClass]
     [UITypeName("PropertyPage")]
-    public class PartView : IController, INotifyPropertyChanged
+    public class ColouredPartView : IController, INotifyPropertyChanged
     {
         [SyncToView, Autogen]
         [UITypeName("GeneralHeader")]
-        public string NameDisplay => Name;
-        public string Name { get; init; }
+        public string NameDisplay => Component.DisplayName;
 
         [SyncToView, Autogen, AutoRPC]
         public string ColourHex
@@ -197,50 +180,50 @@ namespace Parts
             get => ToHex(); set
             {
                 Color colour = new Color(ColorUtility.RGBHex(value));
-                R = colour.R;
-                G = colour.G;
-                B = colour.B;
-                this.Changed(nameof(ColourHex));
-                this.Changed(nameof(R));
-                this.Changed(nameof(G));
-                this.Changed(nameof(B));
+                r = colour.R;
+                g = colour.G;
+                b = colour.B;
+                SyncToModel();
             }
         }
 
         [LocDisplayName("Red")]
-        [SyncToView, Autogen, AutoRPC, Notify]
+        [SyncToView, Autogen, AutoRPC]
         [Range(0, 1)]
         public float R
         {
             get => r; set
             {
-                r = Math.Clamp(value, 0, 1);
-                this.Changed(nameof(R));
-                this.Changed(nameof(ColourHex));
+                float newValue = Math.Clamp(value, 0, 1);
+                if (r == newValue) return;
+                r = newValue;
+                SyncToModel();
             }
         }
         [LocDisplayName("Green")]
-        [SyncToView, Autogen, AutoRPC, Notify]
+        [SyncToView, Autogen, AutoRPC]
         [Range(0, 1)]
         public float G
         {
             get => g; set
             {
-                g = Math.Clamp(value, 0, 1);
-                this.Changed(nameof(G));
-                this.Changed(nameof(ColourHex));
+                float newValue = Math.Clamp(value, 0, 1);
+                if (g == newValue) return;
+                g = newValue;
+                SyncToModel();
             }
         }
         [LocDisplayName("Blue")]
-        [SyncToView, Autogen, AutoRPC, Notify]
+        [SyncToView, Autogen, AutoRPC]
         [Range(0, 1)]
         public float B
         {
             get => b; set
             {
-                b = Math.Clamp(value, 0, 1);
-                this.Changed(nameof(B));
-                this.Changed(nameof(ColourHex));
+                float newValue = Math.Clamp(value, 0, 1);
+                if (b == newValue) return;
+                b = newValue;
+                SyncToModel();
             }
         }
         private string ToHex()
@@ -251,6 +234,39 @@ namespace Parts
         private float r = 1;
         private float g = 1;
         private float b = 1;
+
+        public IHasModelPartColourComponent Component { get; }
+
+        public ColouredPartView(IHasModelPartColourComponent component)
+        {
+            Component = component;
+            r = Component.ColourData.Colour.R;
+            g = Component.ColourData.Colour.G;
+            b = Component.ColourData.Colour.B;
+        }
+        private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+        {
+            Log.WriteLine(Localizer.DoStr("Property Changed " + Component.ToString()));
+            SetColour(new Color(R, G, B));
+        }
+        /// <summary>
+        /// Update the model with the colour values in the view
+        /// </summary>
+        public void SyncToModel()
+        {
+            SetColour(new Color(R, G, B));
+
+            this.Changed(nameof(ColourHex));
+            this.Changed(nameof(R));
+            this.Changed(nameof(G));
+            this.Changed(nameof(B));
+        }
+        private void SetColour(Color colour)
+        {
+            ModelPartColouring partColouring = Component.ColourData;
+            if (partColouring == null) return;
+            partColouring.Colour = colour;
+        }
 
         #region IController
         private int id;
@@ -267,15 +283,15 @@ namespace Parts
     [RequireComponent(typeof(ModelPartColourComponent))]
     public class PartColoursUIComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
-        private IDictionary<IPart, PartView> partViews = new ThreadSafeDictionary<IPart, PartView>();
-
+        private IList<(IHasModelPartColourComponent, ColouredPartView)> partViews = new ThreadSafeList<(IHasModelPartColourComponent, ColouredPartView)>();
+        private IEnumerable<ColouredPartView> Viewers => partViews.Select(pair => pair.Item2);
         [Autogen, SyncToView, HideRoot, HideRootListEntry]
-        public ControllerList<PartView> PartsUI { get; private set; }
+        public ControllerList<ColouredPartView> PartsUI { get; private set; }
 
         private PartsContainer PartsContainer { get; set; }
         public PartColoursUIComponent()
         {
-            PartsUI = new ControllerList<PartView>(this, nameof(PartsUI), Array.Empty<PartView>());
+            PartsUI = new ControllerList<ColouredPartView>(this, nameof(PartsUI), Array.Empty<ColouredPartView>());
         }
         public override void Initialize()
         {
@@ -285,70 +301,78 @@ namespace Parts
         public override void PostInitialize()
         {
             base.PostInitialize();
-            foreach (IPart part in PartsContainer.Parts)
+            IReadOnlyList<IPart> parts = PartsContainer.Parts;
+            for (int i = 0; i < parts.Count; i++)
             {
-                ModelPartColouring partColouring = part.GetAttribute<ModelPartColouring>("PartColouring");
-                if (partColouring != null)
+                IPart part = parts[i];
+                IHasModelPartColourComponent partColourComponent = (part as IHasModelPartColourComponent);
+                if (partColourComponent != null)
                 {
-                    partViews.Add(part, new PartView()
-                    {
-                        Name = part.DisplayName,
-                        R = partColouring.Colour.R,
-                        G = partColouring.Colour.G,
-                        B = partColouring.Colour.B,
-                    });
+                    ColouredPartView partView = new ColouredPartView(partColourComponent);
+                    partViews.Add((partColourComponent, partView));
                 }
             }
-            PartsUI.Set(partViews.Values);
-            foreach (PartView partView in PartsUI)
-            {
-                partView.PropertyChanged += OnPropertyChanged;
-            }
+            PartsUI.Set(Viewers);
             PartsUI.Callbacks.OnAdd.Add(ResetList);
             PartsUI.Callbacks.OnRemove.Add(ResetList);
-            this.PropertyChanged += OnPropertyChanged;
         }
         private void ResetList(INetObject sender, object obj)
         {
-            PartsUI.Set(partViews.Values);
+            PartsUI.Set(Viewers);
             PartsUI.NotifyChanged();
-        }
-        private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-        {
-            if (sender is not PartView partView) return;
-            IPart part = partViews.First(kpv => kpv.Value == partView).Key;
-            SetColour(part, new Color(partView.R, partView.G, partView.B));
-            PartsUI.NotifyChanged();
-            this.Changed(nameof(PartsUI));
-        }
-        private void SetColour(IPart part, Color colour)
-        {
-            ModelPartColouring partColouring = part.GetAttribute<ModelPartColouring>("PartColouring");
-            if (partColouring == null) return;
-            partColouring.Colour = colour;
         }
     }
     [Serialized]
     [NoIcon]
     public class ModelPartColourComponent : WorldObjectComponent
     {
+        private PartsContainer PartsContainer => Parent.GetComponent<PartsContainerComponent>().PartsContainer;
+
+        private ThreadSafeList<IHasModelPartColourComponent> currentColouredParts { get; set; } = new ThreadSafeList<IHasModelPartColourComponent>();
         public override void Initialize()
         {
             base.Initialize();
-            PartsContainer partsContainer = Parent.GetComponent<PartsContainerComponent>().PartsContainer;
-            foreach (IPart part in partsContainer.Parts)
+            UpdateWatchedParts();
+            SetModelColours();
+        }
+        private void UpdateWatchedParts()
+        {
+            lock (currentColouredParts)
             {
-                ModelPartColouring partColouring = part.GetAttribute<ModelPartColouring>("PartColouring");
-                partColouring.PropertyChanged += OnModelPartColouringChanged;
+                IEnumerable<IHasModelPartColourComponent> newColouredParts = PartsContainer.Parts.OfType<IHasModelPartColourComponent>().ToList();
+
+                IEnumerable<IHasModelPartColourComponent> addedParts = newColouredParts.Except(currentColouredParts);
+                IEnumerable<IHasModelPartColourComponent> removedParts = currentColouredParts.Except(newColouredParts);
+                foreach (IHasModelPartColourComponent part in addedParts)
+                {
+                    //part.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), SetModelColours);
+                    Log.WriteLine(Localizer.DoStr("Subscribing to " + part.DisplayName));
+                    part.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), SetModelColours);
+                }
+                foreach(IHasModelPartColourComponent part in removedParts)
+                {
+                    part.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), SetModelColours);
+                }
+                currentColouredParts.Set(newColouredParts);
+            }
+
+        }
+        private void SetModelColours()
+        {
+            foreach (IHasModelPartColourComponent colouredPart in currentColouredParts)
+            {
+                ModelPartColouring partColouring = colouredPart.ColourData;
+                Color colour = partColouring.Colour;
+                Log.WriteLine(Localizer.DoStr("Send colour " + colour + " to model " + partColouring.ModelName));
+                Parent.SetAnimatedState(partColouring.ModelName + "-Red", colour.R);
+                Parent.SetAnimatedState(partColouring.ModelName + "-Green", colour.G);
+                Parent.SetAnimatedState(partColouring.ModelName + "-Blue", colour.B);
             }
         }
-        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
-        {
-            if (sender is not ModelPartColouring partColouring) return;
-            Color colour = partColouring.Colour;
-            Parent.SetAnimatedState(partColouring.ModelName + "-Red", colour.R);
-            Parent.SetAnimatedState(partColouring.ModelName + "-Green", colour.G);
-            Parent.SetAnimatedState(partColouring.ModelName + "-Blue", colour.B);
-        }
+    }
+
+    public interface IHasModelPartColourComponent : IPart
+    {
+        public ModelPartColouring ColourData { get; }
     }
 }

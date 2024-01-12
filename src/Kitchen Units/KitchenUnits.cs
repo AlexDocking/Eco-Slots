@@ -78,7 +78,6 @@ namespace KitchenUnits
         }
 
         [Serialized] public ModelPartColouring ColourData { get; private set; } = new ModelPartColouring();
-        //[SyncToView, LocDisplayName("Colour"), DependsOnSubMember(nameof(ColourData), nameof(ModelPartColouring.Colour))] public string Colour => ColorUtility.RGBHex(ColourData.Colour.HexRGBA);
 
         string IPart.DisplayName => "Door";
     }
@@ -92,7 +91,6 @@ namespace KitchenUnits
         }
 
         [Serialized] public ModelPartColouring ColourData { get; private set; } = new ModelPartColouring();
-        //[SyncToView, LocDisplayName("Colour"), DependsOnSubMember(nameof(ColourData), nameof(ModelPartColouring.Colour))] public string Colour => ColorUtility.RGBHex(ColourData.Colour.HexRGBA);
 
         string IPart.DisplayName => "Worktop";
     }

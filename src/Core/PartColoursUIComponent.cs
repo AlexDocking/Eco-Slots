@@ -3,7 +3,9 @@ using Eco.Core.Utils;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Utils;
 using Eco.Shared.Networking;
+using Eco.Shared.Pools;
 using Eco.Shared.Serialization;
+using Eco.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,15 +20,15 @@ namespace Parts
     [RequireComponent(typeof(ModelPartColourComponent))]
     public class PartColoursUIComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
-        private IList<(IHasModelPartColourComponent, ColouredPartView)> partViews = new ThreadSafeList<(IHasModelPartColourComponent, ColouredPartView)>();
-        private IEnumerable<ColouredPartView> Viewers => partViews.Select(pair => pair.Item2);
+        private IList<(Slot, ColouredPartViewController)> partViews = new ThreadSafeList<(Slot, ColouredPartViewController)>();
+        private IEnumerable<ColouredPartViewController> Viewers => partViews.SelectNonNull(pair => pair.Item2.Model != null ? pair.Item2 : null);
         [Autogen, SyncToView, HideRoot, HideRootListEntry]
-        public ControllerList<ColouredPartView> PartsUI { get; private set; }
-
+        public ControllerList<ColouredPartViewController> PartsUI { get; private set; }
+        
         private PartsContainer PartsContainer { get; set; }
         public PartColoursUIComponent()
         {
-            PartsUI = new ControllerList<ColouredPartView>(this, nameof(PartsUI), Array.Empty<ColouredPartView>());
+            PartsUI = new ControllerList<ColouredPartViewController>(this, nameof(PartsUI), Array.Empty<ColouredPartViewController>());
         }
         public override void Initialize()
         {
@@ -36,20 +38,38 @@ namespace Parts
         public override void PostInitialize()
         {
             base.PostInitialize();
-            IReadOnlyList<IPart> parts = PartsContainer.Parts;
-            for (int i = 0; i < parts.Count; i++)
-            {
-                IPart part = parts[i];
-                IHasModelPartColourComponent partColourComponent = (part as IHasModelPartColourComponent);
-                if (partColourComponent != null)
-                {
-                    ColouredPartView partView = new ColouredPartView(partColourComponent);
-                    partViews.Add((partColourComponent, partView));
-                }
-            }
-            PartsUI.Set(Viewers);
+            BuildViews();
+            PartsContainer.OnPartChanged.Add(OnPartChanged);
             PartsUI.Callbacks.OnAdd.Add(ResetList);
             PartsUI.Callbacks.OnRemove.Add(ResetList);
+        }
+        private void OnPartChanged(Slot slot)
+        {
+            foreach(var (_, viewForSlot) in partViews.Where(s => s.Item1 == slot))
+            {
+                IHasModelPartColourComponent colourComponent = slot.Part as IHasModelPartColourComponent;
+                viewForSlot.SetModel(colourComponent);
+            }
+            PartsUI.Set(Viewers);
+            PartsUI.NotifyChanged();
+        }
+        private void BuildViews()
+        {
+            partViews.Clear();
+            IReadOnlyList<Slot> slots = PartsContainer.Slots;
+            for (int i = 0; i < slots.Count; i++)
+            {
+                Slot slot = slots[i];
+                IPart part = slot.Part;
+                IHasModelPartColourComponent partColourComponent = (part as IHasModelPartColourComponent);
+
+                ColouredPartViewController partView = new ColouredPartViewController();
+                partView.SetModel(partColourComponent);
+                partViews.Add((slot, partView));
+
+            }
+            PartsUI.Set(Viewers);
+            PartsUI.NotifyChanged();
         }
         private void ResetList(INetObject sender, object obj)
         {

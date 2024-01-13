@@ -14,15 +14,35 @@ namespace Parts
     [NoIcon]
     public class PartsContainerComponent : WorldObjectComponent, IPersistentData
     {
+        private PartsContainer partsContainer = new PartsContainer();
+
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
 
+        private bool containerInitialized = false;
+        private object @lock = new object();
         [Serialized, SyncToView, NewTooltipChildren(Eco.Shared.Items.CacheAs.Disabled)]
-        public PartsContainer PartsContainer { get; set; } = new PartsContainer();
+        public PartsContainer PartsContainer
+        {
+            get
+            {
+                lock (@lock)
+                {
+                    if (!containerInitialized && partsContainer != null && Parent != null)
+                    {
+                        partsContainer.Initialize(Parent);
+                        containerInitialized = true;
+                    }
+                }
+                return partsContainer;
+            }
+            set => partsContainer = value;
+        }
         public object PersistentData
         {
             get => PartsContainer; set
             {
                 PartsContainer = value as PartsContainer ?? new PartsContainer();
+                PartsContainer.Initialize(Parent);
                 Log.WriteLine(Localizer.DoStr($"Deserialized persistent data. Null? {(value as PartsContainer) == null}"));
             }
         }

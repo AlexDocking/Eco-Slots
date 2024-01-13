@@ -10,11 +10,11 @@ namespace Parts
 {
     [Serialized, AutogenClass]
     [UITypeName("PropertyPage")]
-    public class ColouredPartView : IController, INotifyPropertyChanged
+    public class ColouredPartViewController : IController, INotifyPropertyChanged
     {
         [SyncToView, Autogen]
         [UITypeName("GeneralHeader")]
-        public string NameDisplay => Component.DisplayName;
+        public string NameDisplay => Model?.DisplayName;
 
         [SyncToView, Autogen, AutoRPC]
         public string ColourHex
@@ -25,7 +25,7 @@ namespace Parts
                 r = colour.R;
                 g = colour.G;
                 b = colour.B;
-                SyncToModel();
+                OnUserInput();
             }
         }
 
@@ -39,7 +39,7 @@ namespace Parts
                 float newValue = Math.Clamp(value, 0, 1);
                 if (r == newValue) return;
                 r = newValue;
-                SyncToModel();
+                OnUserInput();
             }
         }
         [LocDisplayName("Green")]
@@ -52,7 +52,7 @@ namespace Parts
                 float newValue = Math.Clamp(value, 0, 1);
                 if (g == newValue) return;
                 g = newValue;
-                SyncToModel();
+                OnUserInput();
             }
         }
         [LocDisplayName("Blue")]
@@ -65,7 +65,7 @@ namespace Parts
                 float newValue = Math.Clamp(value, 0, 1);
                 if (b == newValue) return;
                 b = newValue;
-                SyncToModel();
+                OnUserInput();
             }
         }
         private string ToHex()
@@ -77,27 +77,31 @@ namespace Parts
         private float g = 1;
         private float b = 1;
 
-        public IHasModelPartColourComponent Component { get; }
+        public IHasModelPartColourComponent Model { get; private set; }
 
-        public ColouredPartView(IHasModelPartColourComponent component)
+        public void SetModel(IHasModelPartColourComponent component)
         {
-            Component = component;
-            r = Component.ColourData.Colour.R;
-            g = Component.ColourData.Colour.G;
-            b = Component.ColourData.Colour.B;
-        }
-        private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-        {
-            Log.WriteLine(Localizer.DoStr("Property Changed " + Component.ToString()));
-            SetColour(new Color(R, G, B));
+            Model?.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), OnModelChanged);
+            Model = component;
+            Model?.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), OnModelChanged);
         }
         /// <summary>
         /// Update the model with the colour values in the view
         /// </summary>
-        public void SyncToModel()
+        private void OnUserInput()
         {
             SetColour(new Color(R, G, B));
-
+        }
+        /// <summary>
+        /// Update the view with the model colour
+        /// </summary>
+        private void OnModelChanged()
+        {
+            if (Model == null) return;
+            r = Model.ColourData.Colour.R;
+            g = Model.ColourData.Colour.G;
+            b = Model.ColourData.Colour.B;
+            this.Changed(nameof(NameDisplay));
             this.Changed(nameof(ColourHex));
             this.Changed(nameof(R));
             this.Changed(nameof(G));
@@ -105,7 +109,8 @@ namespace Parts
         }
         private void SetColour(Color colour)
         {
-            ModelPartColouring partColouring = Component.ColourData;
+            if (Model == null) return;
+            ModelPartColouring partColouring = Model.ColourData;
             if (partColouring == null) return;
             partColouring.Colour = colour;
         }

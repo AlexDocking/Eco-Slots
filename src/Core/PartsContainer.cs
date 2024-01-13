@@ -1,6 +1,8 @@
 ﻿using Eco.Core.Controller;
 using Eco.Core.Utils;
+using Eco.Gameplay.Aliases;
 using Eco.Gameplay.Items;
+using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.NewTooltip;
 using Eco.Gameplay.Systems.TextLinks;
 using Eco.Shared.Localization;
@@ -22,6 +24,7 @@ namespace Parts
         [SyncToView, NewTooltipChildren(Eco.Shared.Items.CacheAs.Disabled)]
         public LocString CurrentPartsListDescription => Localizer.DoStr("Contains parts:").AppendLine(Parts.Select(part => part.UILinkGeneric()).NewlineList());
         public IReadOnlyList<Slot> Slots => slots.Snapshot.AsReadOnly();
+        public ThreadSafeAction<Slot> OnPartChanged { get; } = new ThreadSafeAction<Slot> ();
         public void AddPart(Slot slot, IPart part)
         {
             if (part is not Item partItem) return;
@@ -34,6 +37,17 @@ namespace Parts
             if (index >= 0)
             {
                 slots.RemoveAt(index);
+            }
+        }
+
+        public void Initialize(WorldObject worldObject)
+        {
+            Log.WriteLine(Localizer.DoStr($"Initialize parts container {Name} with object {worldObject?.Name}"));
+
+            foreach (Slot slot in Slots)
+            {
+                slot.Initialize(worldObject);
+                slot.OnPartChanged.Add(() => OnPartChanged.Invoke(slot));
             }
         }
         #region IController

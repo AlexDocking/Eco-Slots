@@ -24,6 +24,7 @@ namespace KitchenUnits
     [RequireComponent(typeof(PartsContainerComponent))]
     [RequireComponent(typeof(ModelPartColourComponent))]
     [RequireComponent(typeof(PartColoursUIComponent))]
+    [RequireComponent(typeof(PartSlotsUIComponent))]
     public class KitchenCupboardObject : WorldObject, IRepresentsItem, IThreadSafeSubscriptions
     {
         public Type RepresentedItemType => typeof(KitchenCupboardItem);
@@ -31,7 +32,7 @@ namespace KitchenUnits
         {
             base.Initialize();
             PartsContainer partsContainer = GetComponent<PartsContainerComponent>().PartsContainer;
-            if (partsContainer.Parts.Count != 3)
+            if (partsContainer.Slots.Count != 3)
             {
                 Log.WriteLine(Localizer.DoStr("Adding parts"));
                 partsContainer.AddPart(new Slot(), new KitchenCupboardUnitItem());

@@ -2,59 +2,57 @@
 using Eco.Core.Utils;
 using Eco.Gameplay.Objects;
 using Eco.Shared.Localization;
+using Eco.Shared.Networking;
 using Eco.Shared.Serialization;
-using Eco.Shared.Utils;
-using Eco.Shared.View;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Parts
 {
+    /// <summary>
+    /// WorldObjectComponent to send all part colours to the client
+    /// </summary>
     [Serialized]
     [NoIcon]
+    [RequireComponent(typeof(PartsContainerComponent))]
     public class ModelPartColourComponent : WorldObjectComponent
     {
-        private PartsContainer PartsContainer => Parent.GetComponent<PartsContainerComponent>().PartsContainer;
+        private IList<(Slot, ModelColourSetterViewController)> partViews = new ThreadSafeList<(Slot, ModelColourSetterViewController)>();
+        private PartsContainer PartsContainer { get; set; }
 
-        private ThreadSafeList<IHasModelPartColourComponent> currentColouredParts { get; set; } = new ThreadSafeList<IHasModelPartColourComponent>();
         public override void Initialize()
         {
             base.Initialize();
-            UpdateWatchedParts();
-            SetModelColours();
+            PartsContainer = Parent.GetComponent<PartsContainerComponent>().PartsContainer;
         }
-        private void UpdateWatchedParts()
+        public override void PostInitialize()
         {
-            lock (currentColouredParts)
+            base.PostInitialize();
+            BuildViews();
+            PartsContainer.OnPartChanged.Add(OnPartChanged);
+        }
+        private void OnPartChanged(Slot slot)
+        {
+            foreach (var (_, viewForSlot) in partViews.Where(s => s.Item1 == slot))
             {
-                IEnumerable<IHasModelPartColourComponent> newColouredParts = PartsContainer.Parts.OfType<IHasModelPartColourComponent>().ToList();
-
-                IEnumerable<IHasModelPartColourComponent> addedParts = newColouredParts.Except(currentColouredParts);
-                IEnumerable<IHasModelPartColourComponent> removedParts = currentColouredParts.Except(newColouredParts);
-                foreach (IHasModelPartColourComponent part in addedParts)
-                {
-                    //part.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), SetModelColours);
-                    Log.WriteLine(Localizer.DoStr("Subscribing to " + part.DisplayName));
-                    part.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), SetModelColours);
-                }
-                foreach(IHasModelPartColourComponent part in removedParts)
-                {
-                    part.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), SetModelColours);
-                }
-                currentColouredParts.Set(newColouredParts);
+                IHasModelPartColourComponent colourComponent = slot.Part as IHasModelPartColourComponent;
+                viewForSlot.SetModel(Parent, colourComponent);
             }
-
         }
-        private void SetModelColours()
+        private void BuildViews()
         {
-            foreach (IHasModelPartColourComponent colouredPart in currentColouredParts)
+            partViews.Clear();
+            IReadOnlyList<Slot> slots = PartsContainer.Slots;
+            for (int i = 0; i < slots.Count; i++)
             {
-                ModelPartColouring partColouring = colouredPart.ColourData;
-                Color colour = partColouring.Colour;
-                Log.WriteLine(Localizer.DoStr("Send colour " + colour + " to model " + partColouring.ModelName));
-                Parent.SetAnimatedState(partColouring.ModelName + "-Red", colour.R);
-                Parent.SetAnimatedState(partColouring.ModelName + "-Green", colour.G);
-                Parent.SetAnimatedState(partColouring.ModelName + "-Blue", colour.B);
+                Slot slot = slots[i];
+                IPart part = slot.Part;
+                IHasModelPartColourComponent partColourComponent = part as IHasModelPartColourComponent;
+
+                ModelColourSetterViewController partView = new ModelColourSetterViewController();
+                partView.SetModel(Parent, partColourComponent);
+                partViews.Add((slot, partView));
             }
         }
     }

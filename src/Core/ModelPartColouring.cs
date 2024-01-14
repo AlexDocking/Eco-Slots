@@ -38,6 +38,6 @@ namespace Parts
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
         public ref ThreadSafeSubscriptions Subscriptions => ref this.subscriptions; ThreadSafeSubscriptions subscriptions;
-        private Color colour;
+        private Color colour = Color.White;
     }
 }

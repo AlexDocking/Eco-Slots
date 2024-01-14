@@ -18,7 +18,7 @@ namespace Parts
         [UITypeName("GeneralHeader")]
         public string NameDisplay => Slot.Name;
 
-        [SyncToView, Autogen, PropReadOnly, UITypeName("StringDisplay")]
+        [SyncToView, Autogen, PropReadOnly, UITypeName("StringTitle")]
         public string PartName => Slot.Part?.DisplayName;
 
         [SyncToView, Autogen, AutoRPC, UITypeName("ItemInput")]
@@ -26,7 +26,6 @@ namespace Parts
         {
             get => Slot.Inventory; set
             {
-                Slot.Inventory = value;
             }
         }
         public Slot Slot { get; init; }

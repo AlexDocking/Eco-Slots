@@ -7,6 +7,7 @@ using Eco.Gameplay.Systems.NewTooltip;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using static Eco.Gameplay.Items.AuthorizationInventory;
@@ -16,8 +17,8 @@ namespace Parts
     [Serialized]
     public class Slot : IController, INotifyPropertyChanged
     {
-        [SyncToView] public string Name { get; set; }
-        [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory { get; set; } = new AuthorizationInventory(1);
+        [Serialized, SyncToView] public string Name { get; set; }
+        [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory { get; private set; } = new AuthorizationInventory(1);
 
         [SyncToView]
         public IPart Part => Inventory.NonEmptyStacks?.FirstOrDefault()?.Item as IPart;
@@ -39,6 +40,14 @@ namespace Parts
             Log.WriteLine(Localizer.DoStr($"Initialize slot {Name} with object {worldObject?.Name}"));
         }
         private void OnInventoryChanged(User user) => OnPartChanged.Invoke();
+
+        public void TryAddPart(IPart part)
+        {
+            if (part is Item partItem)
+            {
+                Inventory.TryAddItem(partItem);
+            }
+        }
 
         #region IController
         private int id;

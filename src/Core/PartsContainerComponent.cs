@@ -14,25 +14,16 @@ namespace Parts
     [NoIcon]
     public class PartsContainerComponent : WorldObjectComponent, IPersistentData
     {
-        private PartsContainer partsContainer = new PartsContainer();
+        private PartsContainer partsContainer;
 
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
 
-        private bool containerInitialized = false;
-        private object @lock = new object();
+        //Created by world object when first placed
         [Serialized, SyncToView, NewTooltipChildren(Eco.Shared.Items.CacheAs.Disabled)]
         public PartsContainer PartsContainer
         {
             get
             {
-                lock (@lock)
-                {
-                    if (!containerInitialized && partsContainer != null && Parent != null)
-                    {
-                        partsContainer.Initialize(Parent);
-                        containerInitialized = true;
-                    }
-                }
                 return partsContainer;
             }
             set => partsContainer = value;
@@ -42,7 +33,7 @@ namespace Parts
             get => PartsContainer; set
             {
                 PartsContainer = value as PartsContainer ?? new PartsContainer();
-                PartsContainer.Initialize(Parent);
+                
                 Log.WriteLine(Localizer.DoStr($"Deserialized persistent data. Null? {(value as PartsContainer) == null}"));
             }
         }

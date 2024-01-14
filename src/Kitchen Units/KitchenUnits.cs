@@ -15,6 +15,7 @@ using Eco.Core.Utils;
 using System.ComponentModel;
 using Eco.Shared.Items;
 using Eco.Gameplay.Systems.NewTooltip;
+using System.IO;
 
 namespace KitchenUnits
 {
@@ -25,20 +26,25 @@ namespace KitchenUnits
     [RequireComponent(typeof(ModelPartColourComponent))]
     [RequireComponent(typeof(PartColoursUIComponent))]
     [RequireComponent(typeof(PartSlotsUIComponent))]
+    [RequireComponent(typeof(ModelReplacerComponent))]
     public class KitchenCupboardObject : WorldObject, IRepresentsItem, IThreadSafeSubscriptions
     {
         public Type RepresentedItemType => typeof(KitchenCupboardItem);
         protected override void Initialize()
         {
             base.Initialize();
+            bool isNewWorldObject = GetComponent<PartsContainerComponent>().PartsContainer == null;
             PartsContainer partsContainer = GetComponent<PartsContainerComponent>().PartsContainer;
-            if (partsContainer.Slots.Count != 3)
+            if (isNewWorldObject)
             {
-                Log.WriteLine(Localizer.DoStr("Adding parts"));
+                partsContainer = new PartsContainer();
+                GetComponent<PartsContainerComponent>().PartsContainer = partsContainer;
                 partsContainer.AddPart(new Slot(), new KitchenCupboardUnitItem());
-                partsContainer.AddPart(new Slot(), new KitchenCupboardDoorItem());
                 partsContainer.AddPart(new Slot(), new KitchenCupboardWorktopItem());
+                partsContainer.AddPart(new Slot(), null);
             }
+
+            partsContainer.Initialize(this);
         }
     }
 
@@ -70,10 +76,23 @@ namespace KitchenUnits
         }
     }
     [Serialized]
-    [LocDisplayName("Kitchen Cupboard Door")]
-    public class KitchenCupboardDoorItem : Item, IPart, IHasModelPartColourComponent
+    [LocDisplayName("Kitchen Cupboard Flat Door")]
+    public class KitchenCupboardFlatDoorItem : Item, IPart, IHasModelPartColourComponent
     {
-        public KitchenCupboardDoorItem() : base()
+        public KitchenCupboardFlatDoorItem() : base()
+        {
+            ColourData.ModelName = "Door";
+        }
+
+        [Serialized] public ModelPartColouring ColourData { get; private set; } = new ModelPartColouring();
+
+        string IPart.DisplayName => "Door";
+    }
+    [Serialized]
+    [LocDisplayName("Kitchen Cupboard Shaker Door")]
+    public class KitchenCupboardShakerDoorItem : Item, IPart, IHasModelPartColourComponent
+    {
+        public KitchenCupboardShakerDoorItem() : base()
         {
             ColourData.ModelName = "Door";
         }

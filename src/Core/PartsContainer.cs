@@ -27,8 +27,7 @@ namespace Parts
         public ThreadSafeAction<Slot> OnPartChanged { get; } = new ThreadSafeAction<Slot> ();
         public void AddPart(Slot slot, IPart part)
         {
-            if (part is not Item partItem) return;
-            slot.Inventory.AddItem(partItem);
+            slot.TryAddPart(part);
             slots.Add(slot);
         }
         public void RemovePart(Slot slot)

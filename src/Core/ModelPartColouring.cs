@@ -21,7 +21,6 @@ namespace Parts
                 this.Changed(nameof(Colour));
             }
         }
-
         public ModelPartColouring()
         {
             PropertyChanged += OnPropertyChanged;

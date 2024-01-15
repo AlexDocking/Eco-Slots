@@ -19,7 +19,7 @@ namespace Parts
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
 
         //Created by world object when first placed
-        [Serialized, SyncToView, NewTooltipChildren(Eco.Shared.Items.CacheAs.Disabled)]
+        [Serialized, SyncToView(viewIsReadOnly: true), NewTooltipChildren(Eco.Shared.Items.CacheAs.Instance)]
         public PartsContainer PartsContainer
         {
             get

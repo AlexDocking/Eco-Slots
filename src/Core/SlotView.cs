@@ -16,7 +16,7 @@ namespace Parts
     {
         [SyncToView, Autogen]
         [UITypeName("GeneralHeader")]
-        public string NameDisplay => Slot.Name;
+        public string NameDisplay => Slot.Name + (Slot.PartsContainer.SlotRestrictionManager.IsOptional(Slot) ? " [Optional]" : "");
 
         [SyncToView, Autogen, PropReadOnly, UITypeName("StringTitle")]
         public string PartName => Slot.Part?.DisplayName;
@@ -28,6 +28,9 @@ namespace Parts
             {
             }
         }
+        [SyncToView, Autogen, PropReadOnly, UITypeName("StringTitle")]
+        public string ValidTypesDisplay => Slot.PartsContainer.SlotRestrictionManager.DisplayRestriction(Slot).NotTranslated;
+
         public Slot Slot { get; init; }
 
         public SlotView(Slot slot)

@@ -97,6 +97,7 @@ namespace Parts
         /// </summary>
         private void OnModelChanged()
         {
+            Log.WriteLine(Localizer.DoStr("ColouredPartViewController.OnModelChanged"));
             if (Model == null) return;
             r = Model.ColourData.Colour.R;
             g = Model.ColourData.Colour.G;

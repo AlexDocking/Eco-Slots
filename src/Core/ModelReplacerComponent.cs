@@ -66,6 +66,7 @@ namespace Parts
     [Serialized]
     [NoIcon]
     [RequireComponent(typeof(ModelPartColourComponent))]
+    [RequireComponent(typeof(PartsContainerComponent))]
     public class ModelReplacerComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
         ModelReplacementViewController view = null;

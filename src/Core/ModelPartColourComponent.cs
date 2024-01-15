@@ -4,6 +4,7 @@ using Eco.Gameplay.Objects;
 using Eco.Shared.Localization;
 using Eco.Shared.Networking;
 using Eco.Shared.Serialization;
+using Eco.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Parts
     [RequireComponent(typeof(PartsContainerComponent))]
     public class ModelPartColourComponent : WorldObjectComponent
     {
-        private IList<(Slot, ModelColourSetterViewController)> partViews = new ThreadSafeList<(Slot, ModelColourSetterViewController)>();
+        private IDictionary<Slot, ModelColourSetterViewController> partViews = new ThreadSafeDictionary<Slot, ModelColourSetterViewController>();
         private PartsContainer PartsContainer { get; set; }
 
         public override void Initialize()
@@ -34,11 +35,13 @@ namespace Parts
         }
         private void OnPartChanged(Slot slot)
         {
-            foreach (var (_, viewForSlot) in partViews.Where(s => s.Item1 == slot))
-            {
-                IHasModelPartColourComponent colourComponent = slot.Part as IHasModelPartColourComponent;
-                viewForSlot.SetModel(Parent, colourComponent);
-            }
+            Log.WriteLine(Localizer.DoStr("ModelPartColourComponent.OnPartChanged"));
+            if (!partViews.TryGetValue(slot, out ModelColourSetterViewController viewForSlot)) return;
+
+            Log.WriteLine(Localizer.DoStr("view for slot"));
+            IHasModelPartColourComponent colourComponent = slot.Part as IHasModelPartColourComponent;
+            viewForSlot.SetModel(Parent, colourComponent);
+            
         }
         private void BuildViews()
         {
@@ -52,7 +55,7 @@ namespace Parts
 
                 ModelColourSetterViewController partView = new ModelColourSetterViewController();
                 partView.SetModel(Parent, partColourComponent);
-                partViews.Add((slot, partView));
+                partViews.Add(slot, partView);
             }
         }
     }

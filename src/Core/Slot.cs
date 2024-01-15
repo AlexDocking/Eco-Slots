@@ -23,9 +23,11 @@ namespace Parts
         [SyncToView]
         public IPart Part => Inventory.NonEmptyStacks?.FirstOrDefault()?.Item as IPart;
 
+        public PartsContainer PartsContainer { get; private set; }
         public ThreadSafeAction OnPartChanged { get; } = new ThreadSafeAction();
-        public void Initialize(WorldObject worldObject)
+        public void Initialize(WorldObject worldObject, PartsContainer partsContainer)
         {
+            PartsContainer = partsContainer;
             if (this.Inventory is not AuthorizationInventory)
             {
                 // ensure the inventory type is authorization inventory (migration)

@@ -20,6 +20,7 @@ using Eco.Gameplay.Housing.PropertyValues;
 using Eco.Mods.TechTree;
 using Eco.Core.Systems;
 using Eco.Core.PropertyHandling;
+using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
 
 namespace KitchenUnits
 {

@@ -1,10 +1,12 @@
 ﻿using Eco.Core.Controller;
+using Eco.Core.PropertyHandling;
 using Eco.Core.Utils;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Players;
 using Eco.Gameplay.Systems.NewTooltip;
 using Eco.Gameplay.Systems.TextLinks;
+using Eco.Shared.Items;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
@@ -22,19 +24,15 @@ namespace Parts
         public IReadOnlyList<IPart> Parts => Slots.SelectNonNull(slot => slot.Inventory.Stacks.FirstOrDefault()?.Item).OfType<IPart>().ToList();
         [Serialized]
         private ThreadSafeList<Slot> slots = new ThreadSafeList<Slot> ();
-        [SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Instance)]//, TooltipAffectedBy(nameof(OnPartChanged))]
-        public LocString CurrentPartsListDescription()
-        {
-            LocString partsListDescription = Parts.Select(part =>
-            {
-                return (part as ILinkable)?.UILink() ?? part.UILinkGeneric();
-            }).NewlineList();
-            return Localizer.DoStr("Contains parts:").AppendLine(partsListDescription);
-        }
-
         public IReadOnlyList<Slot> Slots => slots.Snapshot.AsReadOnly();
-        [Notify] public ThreadSafeAction<Slot> OnPartChanged { get; } = new ThreadSafeAction<Slot> ();
         public ISlotRestrictionManager SlotRestrictionManager { get; set; }
+
+        public PartsContainer()
+        {
+            OnPartChanged.Add(_ => OnPartChangedGlobal.Invoke(this));
+        }
+        [Notify] public ThreadSafeAction<Slot> OnPartChanged { get; } = new ThreadSafeAction<Slot> ();
+        public static ThreadSafeAction<PartsContainer> OnPartChangedGlobal { get; } = new ThreadSafeAction<PartsContainer>();
         public void AddPart(Slot slot, IPart part)
         {
             slot.TryAddPart(part);

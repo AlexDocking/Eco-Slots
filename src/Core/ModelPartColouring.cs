@@ -3,12 +3,15 @@ using Eco.Core.Utils;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
+using System;
 using System.ComponentModel;
 
 namespace Parts
 {
+    public interface IPartProperty { }
+
     [Serialized]
-    public class ModelPartColouring : IController, INotifyPropertyChanged
+    public class ModelPartColouring : IController, INotifyPropertyChanged, IPartProperty
     {
         [Serialized]
         public string ModelName { get; set; }
@@ -19,6 +22,7 @@ namespace Parts
             {
                 colour = value;
                 this.Changed(nameof(Colour));
+                OnColourChangedGlobal.Invoke(this);
             }
         }
         public ModelPartColouring()
@@ -26,6 +30,7 @@ namespace Parts
             PropertyChanged += OnPropertyChanged;
         }
 
+        public static ThreadSafeAction<ModelPartColouring> OnColourChangedGlobal { get; } = new ThreadSafeAction<ModelPartColouring>();
         public void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
         {
             Log.WriteLine(Localizer.DoStr("Detected change in " + args.PropertyName));
@@ -36,7 +41,6 @@ namespace Parts
 
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
-        public ref ThreadSafeSubscriptions Subscriptions => ref this.subscriptions; ThreadSafeSubscriptions subscriptions;
         private Color colour = Color.White;
     }
 }

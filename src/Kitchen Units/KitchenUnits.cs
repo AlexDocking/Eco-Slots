@@ -65,6 +65,8 @@ namespace KitchenUnits
 
             partsContainer.SlotRestrictionManager = slotRestrictionManager;
             partsContainer.Initialize(this);
+
+            ModTooltipLibrary.CurrentPartsListDescription(partsContainer);
         }
     }
 
@@ -73,21 +75,28 @@ namespace KitchenUnits
     [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
     public class KitchenCupboardItem : WorldObjectItem<KitchenCupboardObject>, IPersistentData
     {
-        [Serialized, NewTooltip(CacheAs.Instance)]
+        [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)]
         public object PersistentData { get; set; }
     }
 
     [Serialized]
     [LocDisplayName("Kitchen Cupboard Unit")]
     [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class KitchenCupboardUnitItem : Item, IUniqueStackable, IPart, IHasModelPartColourComponent
+    public class KitchenCupboardUnitItem : Item, IPart, IHasModelPartColourComponent
     {
         public KitchenCupboardUnitItem() : base()
         {
             ColourData.ModelName = "Unit";
         }
-        [Serialized] public ModelPartColouring ColourData { get; set; }
-        [NewTooltip(CacheAs.Instance), TooltipAffectedBy(nameof(ColourData), nameof(ModelPartColouring.Colour))] public LocString ColourTooltip() => this != Item.Get(this.GetType()) ? new TooltipSection(Localizer.DoStr(ColorUtility.RGBHex(ColourData.Colour.HexRGBA))) : LocString.Empty;
+        private ModelPartColouring colourData = new ModelPartColouring();
+        [Serialized] public ModelPartColouring ColourData
+        {
+            get => colourData; set
+            {
+                colourData = value;
+                colourData.ModelName = "Unit";
+            }
+        }
 
         string IPart.DisplayName => "Cupboard Unit";
 
@@ -107,8 +116,16 @@ namespace KitchenUnits
         {
             ColourData.ModelName = "Door";
         }
-        [Serialized] public ModelPartColouring ColourData { get; set; }
-        [NewTooltip(CacheAs.Instance), TooltipAffectedBy(nameof(ColourData), nameof(ModelPartColouring.Colour))] public LocString ColourTooltip() => this != Item.Get(this.GetType()) ? new TooltipSection(Localizer.DoStr(ColorUtility.RGBHex(ColourData.Colour.HexRGBA))) : LocString.Empty;
+        private ModelPartColouring colourData = new ModelPartColouring();
+        [Serialized]
+        public ModelPartColouring ColourData
+        {
+            get => colourData; set
+            {
+                colourData = value;
+                colourData.ModelName = "Door";
+            }
+        }
 
         string IPart.DisplayName => "Flat Door";
     }
@@ -121,7 +138,16 @@ namespace KitchenUnits
         {
             ColourData.ModelName = "Door";
         }
-        [Serialized] public ModelPartColouring ColourData { get; set; }
+        private ModelPartColouring colourData = new ModelPartColouring();
+        [Serialized]
+        public ModelPartColouring ColourData
+        {
+            get => colourData; set
+            {
+                colourData = value;
+                colourData.ModelName = "Door";
+            }
+        }
         string IPart.DisplayName => "Shaker Door";
     }
     [Serialized]
@@ -133,7 +159,16 @@ namespace KitchenUnits
         {
             ColourData.ModelName = "Worktop";
         }
-        [Serialized] public ModelPartColouring ColourData { get; set; }
+        private ModelPartColouring colourData = new ModelPartColouring();
+        [Serialized]
+        public ModelPartColouring ColourData
+        {
+            get => colourData; set
+            {
+                colourData = value;
+                colourData.ModelName = "Worktop";
+            }
+        }
         string IPart.DisplayName => "Cupboard Worktop";
     }
 

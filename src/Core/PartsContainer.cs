@@ -27,12 +27,14 @@ namespace Parts
         public IReadOnlyList<Slot> Slots => slots.Snapshot.AsReadOnly();
         public ISlotRestrictionManager SlotRestrictionManager { get; set; }
 
-        public PartsContainer()
-        {
-            OnPartChanged.Add(_ => OnPartChangedGlobal.Invoke(this));
-        }
-        [Notify] public ThreadSafeAction<Slot> OnPartChanged { get; } = new ThreadSafeAction<Slot> ();
-        public static ThreadSafeAction<PartsContainer> OnPartChangedGlobal { get; } = new ThreadSafeAction<PartsContainer>();
+        /// <summary>
+        /// Called when a slot gains, loses or gets a different part
+        /// </summary>
+        [Notify] public ThreadSafeAction<Slot> NewPartInSlotEvent { get; } = new ThreadSafeAction<Slot> ();
+        /// <summary>
+        /// Called when any part changes and property e.g. colour, or when any slot gains, loses or gets a different part
+        /// </summary>
+        public static ThreadSafeAction<PartsContainer> PartsContainerChangedEventGlobal { get; } = new ThreadSafeAction<PartsContainer>();
         public void AddPart(Slot slot, IPart part)
         {
             slot.TryAddPart(part);
@@ -54,8 +56,15 @@ namespace Parts
             foreach (Slot slot in Slots)
             {
                 slot.Initialize(worldObject, this);
-                slot.OnPartChanged.Add(() => OnPartChanged.Invoke(slot));
+                slot.NewPartInSlotEvent.Add(() => OnSlotChangedPart(slot));
+                slot.PartPropertyChangedEvent.Add((_, _, _) => PartsContainerChangedEventGlobal.Invoke(this));
             }
+        }
+
+        private void OnSlotChangedPart(Slot slot)
+        {
+            NewPartInSlotEvent.Invoke(slot);
+            PartsContainerChangedEventGlobal.Invoke(this);
         }
 
         public Result TryHandleClearRequest(Player player)

@@ -27,9 +27,9 @@ namespace Parts
         public void SetModel(WorldObject worldObject, PartsContainer model)
         {
             WorldObject = worldObject;
-            Model?.OnPartChanged.Remove(OnPartChanged);
+            Model?.NewPartInSlotEvent.Remove(OnPartChanged);
             Model = model;
-            Model?.OnPartChanged.Add(OnPartChanged);
+            Model?.NewPartInSlotEvent.Add(OnPartChanged);
             OnModelChanged();
         }
         private void OnPartChanged(Slot slot) => OnModelChanged();

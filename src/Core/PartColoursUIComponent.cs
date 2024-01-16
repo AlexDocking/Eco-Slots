@@ -39,7 +39,7 @@ namespace Parts
         {
             base.PostInitialize();
             BuildViews();
-            PartsContainer.OnPartChanged.Add(OnPartChanged);
+            PartsContainer.NewPartInSlotEvent.Add(OnPartChanged);
             PartsUI.Callbacks.OnAdd.Add(ResetList);
             PartsUI.Callbacks.OnRemove.Add(ResetList);
         }

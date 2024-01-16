@@ -31,7 +31,7 @@ namespace Parts
         {
             base.PostInitialize();
             BuildViews();
-            PartsContainer.OnPartChanged.Add(OnPartChanged);
+            PartsContainer.NewPartInSlotEvent.Add(OnPartChanged);
         }
         private void OnPartChanged(Slot slot)
         {

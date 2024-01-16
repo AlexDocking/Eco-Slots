@@ -87,18 +87,25 @@ namespace KitchenUnits
     {
         public KitchenCupboardUnitItem() : base()
         {
-            ColourData.ModelName = "Unit";
+            ColourData = colourData;
         }
         private ModelPartColouring colourData = new ModelPartColouring();
         [Serialized] public ModelPartColouring ColourData
         {
             get => colourData; set
             {
+                if (colourData != null) colourData.PropertyChanged -= OnModelPartColouringChanged;
                 colourData = value;
                 colourData.ModelName = "Unit";
+                if (colourData != null) colourData.PropertyChanged += OnModelPartColouringChanged;
             }
         }
-
+        public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
+        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
+        {
+            PartPropertyChangedEvent.Invoke(this, ColourData);
+            PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
+        }
         string IPart.DisplayName => "Cupboard Unit";
 
         public bool CanStack(Item stackingOntoItem)
@@ -115,7 +122,7 @@ namespace KitchenUnits
     {
         public KitchenCupboardFlatDoorItem() : base()
         {
-            ColourData.ModelName = "Door";
+            ColourData = colourData;
         }
         private ModelPartColouring colourData = new ModelPartColouring();
         [Serialized]
@@ -123,9 +130,17 @@ namespace KitchenUnits
         {
             get => colourData; set
             {
+                if (colourData != null) colourData.PropertyChanged -= OnModelPartColouringChanged;
                 colourData = value;
                 colourData.ModelName = "Door";
+                if (colourData != null) colourData.PropertyChanged += OnModelPartColouringChanged;
             }
+        }
+        public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
+        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
+        {
+            PartPropertyChangedEvent.Invoke(this, ColourData);
+            PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
         }
 
         string IPart.DisplayName => "Flat Door";
@@ -137,7 +152,7 @@ namespace KitchenUnits
     {
         public KitchenCupboardShakerDoorItem() : base()
         {
-            ColourData.ModelName = "Door";
+            ColourData = colourData;
         }
         private ModelPartColouring colourData = new ModelPartColouring();
         [Serialized]
@@ -145,9 +160,17 @@ namespace KitchenUnits
         {
             get => colourData; set
             {
+                if (colourData != null) colourData.PropertyChanged -= OnModelPartColouringChanged;
                 colourData = value;
                 colourData.ModelName = "Door";
+                if (colourData != null) colourData.PropertyChanged += OnModelPartColouringChanged;
             }
+        }
+        public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
+        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
+        {
+            PartPropertyChangedEvent.Invoke(this, ColourData);
+            PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
         }
         string IPart.DisplayName => "Shaker Door";
     }
@@ -158,7 +181,7 @@ namespace KitchenUnits
     {
         public KitchenCupboardWorktopItem() : base()
         {
-            ColourData.ModelName = "Worktop";
+            ColourData = colourData;
         }
         private ModelPartColouring colourData = new ModelPartColouring();
         [Serialized]
@@ -166,9 +189,17 @@ namespace KitchenUnits
         {
             get => colourData; set
             {
+                if (colourData != null) colourData.PropertyChanged -= OnModelPartColouringChanged;
                 colourData = value;
                 colourData.ModelName = "Worktop";
+                if (colourData != null) colourData.PropertyChanged += OnModelPartColouringChanged;
             }
+        }
+        public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
+        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
+        {
+            PartPropertyChangedEvent.Invoke(this, ColourData);
+            PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
         }
         string IPart.DisplayName => "Cupboard Worktop";
     }

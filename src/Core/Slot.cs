@@ -21,10 +21,17 @@ namespace Parts
         [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory { get; private set; } = new AuthorizationInventory(1);
 
         [SyncToView]
-        public IPart Part => Inventory.NonEmptyStacks?.FirstOrDefault()?.Item as IPart;
+        public IPart Part => part;
 
         public PartsContainer PartsContainer { get; private set; }
-        public ThreadSafeAction OnPartChanged { get; } = new ThreadSafeAction();
+        /// <summary>
+        /// Called whenever the slot inventory changes
+        /// </summary>
+        public ThreadSafeAction NewPartInSlotEvent { get; } = new ThreadSafeAction();
+        /// <summary>
+        /// Called whenever one of the part's properties e.g. colour is changed
+        /// </summary>
+        public ThreadSafeAction<Slot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<Slot, IPart, IPartProperty>();
         public void Initialize(WorldObject worldObject, PartsContainer partsContainer)
         {
             PartsContainer = partsContainer;
@@ -40,8 +47,23 @@ namespace Parts
             this.Inventory.SetOwner(worldObject);
             this.Inventory.OnChanged.Add(OnInventoryChanged);
             Log.WriteLine(Localizer.DoStr($"Initialize slot {Name} with object {worldObject?.Name}"));
+            SetPart(Inventory.NonEmptyStacks?.FirstOrDefault()?.Item as IPart);
         }
-        private void OnInventoryChanged(User user) => OnPartChanged.Invoke();
+        private void SetPart(IPart newPart)
+        {
+            part?.PartPropertyChangedEvent.Remove(OnPartPropertyChanged);
+            part = newPart;
+            newPart?.PartPropertyChangedEvent.Add(OnPartPropertyChanged);
+        }
+        private void OnPartPropertyChanged(IPart part, IPartProperty partProperty)
+        {
+            PartPropertyChangedEvent.Invoke(this, part, partProperty);
+        }
+        private void OnInventoryChanged(User user)
+        {
+            SetPart(Inventory.NonEmptyStacks?.FirstOrDefault()?.Item as IPart);
+            NewPartInSlotEvent.Invoke();
+        }
 
         public void TryAddPart(IPart part)
         {
@@ -53,6 +75,7 @@ namespace Parts
 
         #region IController
         private int id;
+        private IPart part;
 
         public ref int ControllerID => ref id;
 

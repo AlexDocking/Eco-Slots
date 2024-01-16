@@ -42,7 +42,7 @@ namespace Parts
                 Slot slot = slots[i];
                 SlotView slotView = new SlotView(slot);
                 slotViews.Add((slot, slotView));
-                slot.OnPartChanged.Add(PartsUI.NotifyChanged);
+                slot.NewPartInSlotEvent.Add(PartsUI.NotifyChanged);
             }
             PartsUI.Set(Viewers);
             PartsUI.Callbacks.OnAdd.Add(ResetList);

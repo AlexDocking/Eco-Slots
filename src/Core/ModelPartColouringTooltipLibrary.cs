@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Parts;
-using Eco.Gameplay.Housing.PropertyValues;
 using Eco.Core.Controller;
 
 namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles

@@ -2,6 +2,7 @@
 using Eco.Core.Utils;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Utils;
+using Eco.Shared.Localization;
 using Eco.Shared.Networking;
 using Eco.Shared.Pools;
 using Eco.Shared.Serialization;
@@ -62,7 +63,7 @@ namespace Parts
                 Slot slot = slots[i];
                 IPart part = slot.Part;
                 IHasModelPartColourComponent partColourComponent = (part as IHasModelPartColourComponent);
-
+                Log.WriteLine(Localizer.DoStr($"Building views {i}:{slot.Name}:{part?.DisplayName},{partColourComponent?.DisplayName}"));
                 ColouredPartViewController partView = new ColouredPartViewController();
                 partView.SetModel(partColourComponent);
                 partViews.Add((slot, partView));

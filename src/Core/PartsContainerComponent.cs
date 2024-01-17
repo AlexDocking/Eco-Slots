@@ -44,7 +44,7 @@ namespace Parts
             Log.WriteLine(Localizer.DoStr($"Slots {slots.Count}, parts {parts.Count}"));
             for (int i = 0; i < parts.Count; i++)
             {
-                Log.WriteLine(Localizer.DoStr($"Slot {i}: {slots[i].Inventory.NonEmptyStacks.FirstOrDefault()?.Item.Name}"));
+                Log.WriteLine(Localizer.DoStr($"Slot {i}: {slots[i].Inventory.Stacks.FirstOrDefault()?.Item.Name}"));
                 Log.WriteLine(Localizer.DoStr($"Part {i}: {parts[i].DisplayName}"));
             }
         }

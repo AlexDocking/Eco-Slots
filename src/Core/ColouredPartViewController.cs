@@ -15,6 +15,17 @@ namespace Parts
         [SyncToView, Autogen]
         [UITypeName("GeneralHeader")]
         public string NameDisplay => Model?.DisplayName;
+        [SyncToView, Autogen, PropReadOnly]
+        [UITypeName("StringTitle")]
+        [LocDisplayName("Preview")]
+        public string ColourPreview
+        {
+            get
+            {
+                return Localizer.NotLocalized($"<mark={ColourHex}>________________</mark>");
+            }
+            set { Localizer.DoStr("Shouldn't be settable:" + value); }
+        }
 
         [SyncToView, Autogen, AutoRPC]
         public string ColourHex
@@ -28,10 +39,6 @@ namespace Parts
                 OnUserInput();
             }
         }
-
-        [LocDisplayName("Red")]
-        [SyncToView, Autogen, AutoRPC]
-        [Range(0, 1)]
         public float R
         {
             get => r; set
@@ -42,9 +49,6 @@ namespace Parts
                 OnUserInput();
             }
         }
-        [LocDisplayName("Green")]
-        [SyncToView, Autogen, AutoRPC]
-        [Range(0, 1)]
         public float G
         {
             get => g; set
@@ -55,9 +59,6 @@ namespace Parts
                 OnUserInput();
             }
         }
-        [LocDisplayName("Blue")]
-        [SyncToView, Autogen, AutoRPC]
-        [Range(0, 1)]
         public float B
         {
             get => b; set
@@ -66,6 +67,40 @@ namespace Parts
                 if (b == newValue) return;
                 b = newValue;
                 OnUserInput();
+            }
+        }
+
+        [LocDisplayName("Red")]
+        [SyncToView, Autogen, AutoRPC]
+        [Range(0, 255), UITypeName("Int32")]
+        public float R255
+        {
+            get => (int)Math.Round(R * 255);
+            set
+            {
+                R = value / 255f;
+            }
+        }
+        [LocDisplayName("Green")]
+        [SyncToView, Autogen, AutoRPC]
+        [Range(0, 255), UITypeName("Int32")]
+        public float G255
+        {
+            get => (int)Math.Round(G * 255);
+            set
+            {
+                G = value / 255f;
+            }
+        }
+        [LocDisplayName("Blue")]
+        [SyncToView, Autogen, AutoRPC]
+        [Range(0, 255), UITypeName("Int32")]
+        public float B255
+        {
+            get => (int)Math.Round(B * 255);
+            set
+            {
+                B = value / 255f;
             }
         }
         private string ToHex()
@@ -81,6 +116,7 @@ namespace Parts
 
         public void SetModel(IHasModelPartColourComponent component)
         {
+            Log.WriteLine(Localizer.DoStr("ColouredPartViewController " + component?.DisplayName));
             Model?.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), OnModelChanged);
             Model = component;
             Model?.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), OnModelChanged);
@@ -103,10 +139,14 @@ namespace Parts
             g = Model.ColourData.Colour.G;
             b = Model.ColourData.Colour.B;
             this.Changed(nameof(NameDisplay));
+            this.Changed(nameof(ColourPreview));
             this.Changed(nameof(ColourHex));
             this.Changed(nameof(R));
             this.Changed(nameof(G));
             this.Changed(nameof(B));
+            this.Changed(nameof(R255));
+            this.Changed(nameof(G255));
+            this.Changed(nameof(B255));
         }
         private void SetColour(Color colour)
         {

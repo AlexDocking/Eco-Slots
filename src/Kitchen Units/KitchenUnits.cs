@@ -46,28 +46,55 @@ namespace KitchenUnits
             {
                 partsContainer = new PartsContainer();
                 GetComponent<PartsContainerComponent>().PartsContainer = partsContainer;
-                partsContainer.AddPart(new Slot(), new KitchenCupboardUnitItem());
-                partsContainer.AddPart(new Slot(), new KitchenCupboardWorktopItem());
-                partsContainer.AddPart(new Slot(), null);
             }
+            EnsureSlotsHaveCorrectParts(partsContainer);
+
             IReadOnlyList<Slot> slots = partsContainer.Slots;
-            slots[0].Name = "Unit";
-            slots[1].Name = "Worktop";
-            slots[2].Name = "Door";
             BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
-            slotRestrictionManager.SetTypeRestriction(slots[0], new[] { typeof(KitchenCupboardUnitItem) });
+            slotRestrictionManager.SetTypeRestriction(slots[0], new[] { typeof(KitchenBaseCabinetBoxItem) });
             slotRestrictionManager.SetOptional(slots[0], false);
 
             slotRestrictionManager.SetTypeRestriction(slots[1], new[] { typeof(KitchenCupboardWorktopItem) });
             slotRestrictionManager.SetOptional(slots[1], false);
 
-            slotRestrictionManager.SetTypeRestriction(slots[2], new[] { typeof(KitchenCupboardFlatDoorItem), typeof(KitchenCupboardShakerDoorItem) });
+            slotRestrictionManager.SetTypeRestriction(slots[2], new[] { typeof(KitchenCabinetFlatDoorItem), typeof(KitchenCupboardRaisedPanelDoorItem) });
             slotRestrictionManager.SetOptional(slots[2], true);
 
             partsContainer.SlotRestrictionManager = slotRestrictionManager;
             partsContainer.Initialize(this);
 
             ModTooltipLibrary.CurrentPartsListDescription(partsContainer);
+        }
+
+        private static void EnsureSlotsHaveCorrectParts(PartsContainer partsContainer)
+        {
+            IReadOnlyList<Slot> slots = partsContainer.Slots;
+            for (int i = 0; i < 3 - slots.Count; i++)
+            {
+                partsContainer.AddPart(new Slot(), null);
+            }
+            IPart preexistingPart0 = slots[0].Inventory.Stacks?.FirstOrDefault()?.Item as IPart;
+            IPart preexistingPart1 = slots[1].Inventory.Stacks?.FirstOrDefault()?.Item as IPart;
+
+            if (preexistingPart0 is not KitchenBaseCabinetBoxItem)
+            {
+                KitchenBaseCabinetBoxItem newBox = new KitchenBaseCabinetBoxItem();
+                if (slots[0].Part is IHasModelPartColourComponent colourComponent) newBox.ColourData.Colour = colourComponent.ColourData.Colour;
+                slots[0].Inventory.Stacks.First().Item = newBox;
+            }
+
+            if (preexistingPart1 is not KitchenCupboardWorktopItem)
+            {
+                KitchenCupboardWorktopItem newWorktop = new KitchenCupboardWorktopItem();
+                if (preexistingPart1 is IHasModelPartColourComponent colourComponent) newWorktop.ColourData.Colour = colourComponent.ColourData.Colour;
+                slots[1].Inventory.Stacks.First().Item = newWorktop;
+            }
+            Log.WriteLine(Localizer.DoStr($"Existing 0:{preexistingPart0?.GetType()} {slots[0].Part?.GetType()}"));
+            Log.WriteLine(Localizer.DoStr($"Existing 1:{preexistingPart1?.GetType()} {slots[1].Part?.GetType()}"));
+
+            slots[0].Name = "Unit";
+            slots[1].Name = "Worktop";
+            slots[2].Name = "Door";
         }
     }
 
@@ -81,11 +108,11 @@ namespace KitchenUnits
     }
 
     [Serialized]
-    [LocDisplayName("Kitchen Cupboard Unit")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class KitchenCupboardUnitItem : Item, IPart, IHasModelPartColourComponent
+    [LocDisplayName("Kitchen Base Cabinet Box")]
+    [LocDescription("The sides, base and shelves of a kitchen cabinet that sits on the floor.")]
+    public class KitchenBaseCabinetBoxItem : Item, IPart, IHasModelPartColourComponent
     {
-        public KitchenCupboardUnitItem() : base()
+        public KitchenBaseCabinetBoxItem() : base()
         {
             ColourData = colourData;
         }
@@ -106,21 +133,14 @@ namespace KitchenUnits
             PartPropertyChangedEvent.Invoke(this, ColourData);
             PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
         }
-        string IPart.DisplayName => "Cupboard Unit";
-
-        public bool CanStack(Item stackingOntoItem)
-        {
-            if (stackingOntoItem?.GetType() != typeof(KitchenCupboardUnitItem)) return false;
-            KitchenCupboardUnitItem kitchenCupboardItem = (KitchenCupboardUnitItem)stackingOntoItem;
-            return kitchenCupboardItem.ColourData.Colour == ColourData.Colour;
-        }
+        string IPart.DisplayName => "Cabinet Box";
     }
     [Serialized]
-    [LocDisplayName("Kitchen Cupboard Flat Door")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class KitchenCupboardFlatDoorItem : Item, IPart, IHasModelPartColourComponent
+    [LocDisplayName("Kitchen Cabinet Flat Door")]
+    [LocDescription("Completely flat.")]
+    public class KitchenCabinetFlatDoorItem : Item, IPart, IHasModelPartColourComponent
     {
-        public KitchenCupboardFlatDoorItem() : base()
+        public KitchenCabinetFlatDoorItem() : base()
         {
             ColourData = colourData;
         }
@@ -146,11 +166,11 @@ namespace KitchenUnits
         string IPart.DisplayName => "Flat Door";
     }
     [Serialized]
-    [LocDisplayName("Kitchen Cupboard Shaker Door")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class KitchenCupboardShakerDoorItem : Item, IPart, IHasModelPartColourComponent
+    [LocDisplayName("Kitchen Cupboard Raised Panel Door")]
+    [LocDescription("A cupboard door with a raised panel in the centre.")]
+    public class KitchenCupboardRaisedPanelDoorItem : Item, IPart, IHasModelPartColourComponent
     {
-        public KitchenCupboardShakerDoorItem() : base()
+        public KitchenCupboardRaisedPanelDoorItem() : base()
         {
             ColourData = colourData;
         }
@@ -172,7 +192,7 @@ namespace KitchenUnits
             PartPropertyChangedEvent.Invoke(this, ColourData);
             PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
         }
-        string IPart.DisplayName => "Shaker Door";
+        string IPart.DisplayName => "Raised Panel Door";
     }
     [Serialized]
     [LocDisplayName("Kitchen Cupboard Worktop")]

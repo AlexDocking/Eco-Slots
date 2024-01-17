@@ -57,10 +57,9 @@ namespace Parts
         {
             IReadOnlyList<IPart> parts = container.Parts;
 
-            worldObject.SetAnimatedState("Flat Door", parts.Any(part => part is KitchenCupboardFlatDoorItem));
-            worldObject.SetAnimatedState("Shaker Door", parts.Any(part => part is KitchenCupboardShakerDoorItem));
-            worldObject.SetAnimatedState("No Door", parts.None(part => part is KitchenCupboardFlatDoorItem || part is KitchenCupboardShakerDoorItem));
-
+            worldObject.SetAnimatedState("Flat Door", parts.Any(part => part is KitchenCabinetFlatDoorItem));
+            worldObject.SetAnimatedState("Shaker Door", parts.Any(part => part is KitchenCupboardRaisedPanelDoorItem));
+            worldObject.SetAnimatedState("No Door", parts.None(part => part is KitchenCabinetFlatDoorItem || part is KitchenCupboardRaisedPanelDoorItem));
         }
     }
     [Serialized]

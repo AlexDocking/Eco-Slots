@@ -116,18 +116,12 @@ namespace KitchenUnits
         {
             get => colourData; set
             {
-                if (colourData != null) colourData.PropertyChanged -= OnModelPartColouringChanged;
-                colourData = value;
-                colourData.ModelName = "Unit";
-                if (colourData != null) colourData.PropertyChanged += OnModelPartColouringChanged;
+                var newData = value;
+                newData.ModelName = "Unit";
+                this.SetProperty(newData, ref colourData);
             }
         }
         public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
-        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
-        {
-            PartPropertyChangedEvent.Invoke(this, ColourData);
-            PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
-        }
         string IPart.DisplayName => "Cabinet Box";
     }
     [Serialized]
@@ -145,19 +139,12 @@ namespace KitchenUnits
         {
             get => colourData; set
             {
-                if (colourData != null) colourData.PropertyChanged -= OnModelPartColouringChanged;
-                colourData = value;
-                colourData.ModelName = "Door";
-                if (colourData != null) colourData.PropertyChanged += OnModelPartColouringChanged;
+                var newData = value;
+                newData.ModelName = "Door";
+                this.SetProperty(newData, ref colourData);
             }
         }
         public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
-        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
-        {
-            PartPropertyChangedEvent.Invoke(this, ColourData);
-            PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
-        }
-
         string IPart.DisplayName => "Flat Door";
     }
     [Serialized]
@@ -175,18 +162,12 @@ namespace KitchenUnits
         {
             get => colourData; set
             {
-                if (colourData != null) colourData.PropertyChanged -= OnModelPartColouringChanged;
-                colourData = value;
-                colourData.ModelName = "Door";
-                if (colourData != null) colourData.PropertyChanged += OnModelPartColouringChanged;
+                var newData = value;
+                newData.ModelName = "Door";
+                this.SetProperty(newData, ref colourData);
             }
         }
         public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
-        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
-        {
-            PartPropertyChangedEvent.Invoke(this, ColourData);
-            PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
-        }
         string IPart.DisplayName => "Raised Panel Door";
     }
     [Serialized]
@@ -204,18 +185,12 @@ namespace KitchenUnits
         {
             get => colourData; set
             {
-                if (colourData != null) colourData.PropertyChanged -= OnModelPartColouringChanged;
-                colourData = value;
-                colourData.ModelName = "Worktop";
-                if (colourData != null) colourData.PropertyChanged += OnModelPartColouringChanged;
+                var newData = value;
+                newData.ModelName = "Worktop";
+                this.SetProperty(newData, ref colourData);
             }
         }
         public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
-        private void OnModelPartColouringChanged(object sender, PropertyChangedEventArgs args)
-        {
-            PartPropertyChangedEvent.Invoke(this, ColourData);
-            PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
-        }
         string IPart.DisplayName => "Worktop";
     }
 }

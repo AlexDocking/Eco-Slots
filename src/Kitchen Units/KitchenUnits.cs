@@ -21,12 +21,13 @@ using Eco.Mods.TechTree;
 using Eco.Core.Systems;
 using Eco.Core.PropertyHandling;
 using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
+using Parts.Migration;
 
 namespace Parts
 {
     public interface IPartsContainerWorldObject
     {
-        public void PartsContainerSetup(IPartsContainer existingContainer, out IPartsContainer newContainer);
+        public IPartsContainerSchema GetPartsContainerSchema();
     }
 }
 
@@ -99,6 +100,8 @@ namespace KitchenUnits
             slots[1].Name = "Worktop";
             slots[2].Name = "Door";
         }
+
+        public IPartsContainerSchema GetPartsContainerSchema() => new KitchenBaseCabinetSchema();
     }
 
     [Serialized]

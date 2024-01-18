@@ -1,9 +1,12 @@
 ﻿using Eco.Core.Tests;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
+using Eco.Mods.TechTree;
 using Eco.Shared.Localization;
+using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
 using KitchenUnits;
+using Parts.Migration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -80,5 +83,45 @@ namespace Parts.Tests
 
             DebugUtils.AssertEquals(1, calls, $"Should have fired global event on {nameof(PartsContainer)} when item colour changed");
         }
+
+        [Serialized]
+        [LocCategory("Hidden")]
+        public class TestWorldObject : WorldObject, IPartsContainerWorldObject
+        {
+            public IPartsContainerSchema Schema { get; set; }
+            public IPartsContainerSchema GetPartsContainerSchema() => Schema;
+        }
+        public class TestPartsContainerSchema : IPartsContainerSchema
+        {
+            private readonly IPartsContainer subsitute;
+            public TestPartsContainerSchema(IPartsContainer subsitute)
+            {
+                this.subsitute = subsitute;
+            }
+            public IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer)
+            {
+                subsitute.AddPart(new Slot(), existingContainer.Parts.First());
+                return subsitute;
+            }
+        }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldUseSchemaToMigratePartsContainer()
+        {
+            PartsContainer migratedPartsContainer = new PartsContainer();
+            WorldObject worldObject = new TestWorldObject() { Schema = new TestPartsContainerSchema(migratedPartsContainer) };
+            PartsContainerComponent partsContainerComponent = worldObject.GetOrCreateComponent<PartsContainerComponent>();
+            
+            IPartsContainer existingPartsContainer = new PartsContainer();
+            Slot slot = new Slot() { Name = "Box" };
+            KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
+            existingPartsContainer.AddPart(slot, part);
+            partsContainerComponent.PartsContainer = existingPartsContainer;
+            partsContainerComponent.PartsContainer.Initialize(worldObject);
+
+            DebugUtils.AssertEquals(migratedPartsContainer, partsContainerComponent.PartsContainer, "Should have used migration schema to set the new parts container");
+            DebugUtils.AssertEquals(part, partsContainerComponent.PartsContainer.Parts.FirstOrDefault(), "Should have passed in existing parts container to migration schema");
+        }
     }
+
 }

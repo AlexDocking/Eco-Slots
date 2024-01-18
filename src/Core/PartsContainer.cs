@@ -19,8 +19,8 @@ namespace Parts
     [Serialized]
     public class PartsContainer : IController, INotifyPropertyChanged, IClearRequestHandler
     {
+        //not used
         [Serialized] public string Name { get; set; } = "Serialized Name";
-        //[SyncToView, NewTooltipChildren(Eco.Shared.Items.CacheAs.Instance)]
         public IReadOnlyList<IPart> Parts => Slots.SelectNonNull(slot => slot.Inventory.Stacks.FirstOrDefault()?.Item).OfType<IPart>().ToList();
         [Serialized]
         private ThreadSafeList<Slot> slots = new ThreadSafeList<Slot> ();
@@ -51,8 +51,6 @@ namespace Parts
 
         public void Initialize(WorldObject worldObject)
         {
-            Log.WriteLine(Localizer.DoStr($"Initialize parts container {Name} with object {worldObject?.Name}"));
-
             foreach (Slot slot in Slots)
             {
                 slot.Initialize(worldObject, this);

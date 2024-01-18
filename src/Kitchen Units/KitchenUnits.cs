@@ -87,9 +87,6 @@ namespace KitchenUnits
                 if (preexistingPart1 is IHasModelPartColourComponent colourComponent) newWorktop.ColourData.Colour = colourComponent.ColourData.Colour;
                 slots[1].Inventory.Stacks.First().Item = newWorktop;
             }
-            Log.WriteLine(Localizer.DoStr($"Existing 0:{preexistingPart0?.GetType()} {slots[0].Part?.GetType()}"));
-            Log.WriteLine(Localizer.DoStr($"Existing 1:{preexistingPart1?.GetType()} {slots[1].Part?.GetType()}"));
-
             slots[0].Name = "Unit";
             slots[1].Name = "Worktop";
             slots[2].Name = "Door";

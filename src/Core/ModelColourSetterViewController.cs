@@ -27,7 +27,6 @@ namespace Parts
         /// </summary>
         private void OnModelChanged()
         {
-            Log.WriteLine(Localizer.DoStr("ModelColourSetterViewController.OnModelChanged"));
             ModelPartColouring partColouring = Model?.ColourData;
             if (partColouring == null) return;
 
@@ -35,8 +34,6 @@ namespace Parts
         }
         private void SetColour(string modelName, Color colour)
         {
-            Log.WriteLine(Localizer.DoStr("ModelColourSetterViewController.SendColour " + modelName + "-" + colour));
-
             WorldObject.SetAnimatedState(modelName + "-Red", colour.R);
             WorldObject.SetAnimatedState(modelName + "-Green", colour.G);
             WorldObject.SetAnimatedState(modelName + "-Blue", colour.B);

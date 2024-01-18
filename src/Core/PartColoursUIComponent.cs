@@ -63,7 +63,6 @@ namespace Parts
                 Slot slot = slots[i];
                 IPart part = slot.Part;
                 IHasModelPartColourComponent partColourComponent = (part as IHasModelPartColourComponent);
-                Log.WriteLine(Localizer.DoStr($"Building views {i}:{slot.Name}:{part?.DisplayName},{partColourComponent?.DisplayName}"));
                 ColouredPartViewController partView = new ColouredPartViewController();
                 partView.SetModel(partColourComponent);
                 partViews.Add((slot, partView));

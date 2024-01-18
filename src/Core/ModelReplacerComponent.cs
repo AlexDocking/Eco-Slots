@@ -23,7 +23,6 @@ namespace Parts
         KitchenCupboardModelReplacements ModelReplacements { get; } = new KitchenCupboardModelReplacements();
         public WorldObject WorldObject { get; private set; }
         public PartsContainer Model { get; private set; }
-
         public void SetModel(WorldObject worldObject, PartsContainer model)
         {
             WorldObject = worldObject;
@@ -38,8 +37,6 @@ namespace Parts
         /// </summary>
         private void OnModelChanged()
         {
-            Log.WriteLine(Localizer.DoStr("Send enabled parts model change"));
-
             ModelReplacements.SetEnabledParts(WorldObject, Model);
         }
 

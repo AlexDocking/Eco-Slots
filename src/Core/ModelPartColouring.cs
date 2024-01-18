@@ -25,16 +25,7 @@ namespace Parts
                 OnColourChangedGlobal.Invoke(this);
             }
         }
-        public ModelPartColouring()
-        {
-            PropertyChanged += OnPropertyChanged;
-        }
-
         public static ThreadSafeAction<ModelPartColouring> OnColourChangedGlobal { get; } = new ThreadSafeAction<ModelPartColouring>();
-        public void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-        {
-            Log.WriteLine(Localizer.DoStr("Detected change in " + args.PropertyName));
-        }
         #region IController
         private int id;
         public ref int ControllerID => ref id;

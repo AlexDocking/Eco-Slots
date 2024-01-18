@@ -24,7 +24,7 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         public static void Initialize()
         {
             TooltipsByType.Add(typeof(ModelPartColouring), o => ColourDataTooltip(o as ModelPartColouring));
-            PartNotifications.PartPropertyChangedEventGlobal.Add((part, property) => { Log.WriteLine(Localizer.DoStr("Global part property changed"));  if (part is IController controller) ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColourComponentTooltip), null, controller); });
+            PartNotifications.PartPropertyChangedEventGlobal.Add((part, property) => { if (part is IController controller) ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColourComponentTooltip), null, controller); });
 
             ModelPartColouring.OnColourChangedGlobal.Add(colouring => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColouringTooltip), null, colouring));
             PartsContainer.PartsContainerChangedEventGlobal.Add(partsContainer 
@@ -64,9 +64,6 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
             return Localizer.NotLocalized($"<mark={ColorUtility.RGBHex(colour.HexRGBA)}>{Text.CopyToClipBoard("Colour", Localizer.NotLocalizedStr(hexRGB), hexRGB)}</mark> ({hexRGB})");
         }
 
-        private static ThreadSafeHashSet<(User, PartsContainer)> ExpandedContainers { get; } = new ThreadSafeHashSet<(User, PartsContainer)>();
-        
-
         /// <summary>
         /// Generates tooltip for PartsContainer
         /// </summary>
@@ -76,7 +73,6 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(PartsContainer), flags:TTFlags.ClearCacheForAllUsers)]//, TooltipAffectedBy(nameof(OnPartChanged))]
         public static LocString CurrentPartsListDescription(this PartsContainer partsContainer)
         {
-            Log.WriteLine(Localizer.DoStr("CurrentPartsListDescription"));
             List<LocString> partTooltips = new List<LocString>
             {
                 Localizer.DoStr("Contains parts:").Style(Text.Styles.Title)
@@ -91,12 +87,8 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
                 partTooltips.Add((Localizer.DoStr("Slot") + ": " + slot.Name).Style(Text.Styles.Header).AppendLine(content));
             }
             LocString tooltip = partTooltips.DoubleNewlineList();
-            Log.WriteLine(tooltip);
             return tooltip;
         }
-
-        //[NewTooltip(CacheAs.Instance, 155, overrideType: typeof(PartsContainerComponent))]//, TooltipAffectedBy(nameof(OnPartChanged))]
-        //public static LocString CurrentPartsListDescriptionForComponent(this PartsContainerComponent partsContainerComponent) => CurrentPartsListDescription(partsContainerComponent.PartsContainer);
 
         private static LocString PartTooltip(IPart part)
         {
@@ -108,13 +100,11 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
             List<LocString> partTooltip = new List<LocString>();
             foreach (object property in partProperties)
             {
-                Log.WriteLine(Localizer.DoStr($"property " + property.GetType()));
                 if (TooltipsByType.TryGetValue(property.GetType(), out Func<object, LocString> tooltipMethod))
                 {
                     partTooltip.Add(tooltipMethod(property));
                 }
             }
-            Log.WriteLine(Localizer.DoStr($"Found {partTooltip.Count()} tooltip objects"));
             return partTooltip.NewlineList();
         }
     }

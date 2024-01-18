@@ -46,7 +46,6 @@ namespace Parts
             }
             this.Inventory.SetOwner(worldObject);
             this.Inventory.OnChanged.Add(OnInventoryChanged);
-            Log.WriteLine(Localizer.DoStr($"Initialize slot {Name} with object {worldObject?.Name}"));
             SetPart(Inventory.Stacks?.FirstOrDefault()?.Item as IPart);
         }
         private void SetPart(IPart newPart)

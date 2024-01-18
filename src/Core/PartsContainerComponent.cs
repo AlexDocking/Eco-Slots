@@ -35,19 +35,6 @@ namespace Parts
             get => PartsContainer; set
             {
                 PartsContainer = value as PartsContainer ?? new PartsContainer();
-                
-                Log.WriteLine(Localizer.DoStr($"Deserialized persistent data. Null? {(value as PartsContainer) == null}"));
-            }
-        }
-        public override void Initialize()
-        {
-            IReadOnlyList<Slot> slots = PartsContainer.Slots;
-            IReadOnlyList<IPart> parts = PartsContainer.Parts;
-            Log.WriteLine(Localizer.DoStr($"Slots {slots.Count}, parts {parts.Count}"));
-            for (int i = 0; i < parts.Count; i++)
-            {
-                Log.WriteLine(Localizer.DoStr($"Slot {i}: {slots[i].Inventory.Stacks.FirstOrDefault()?.Item.Name}"));
-                Log.WriteLine(Localizer.DoStr($"Part {i}: {parts[i].DisplayName}"));
             }
         }
     }

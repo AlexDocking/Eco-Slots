@@ -36,8 +36,6 @@ namespace Parts
         public SlotView(Slot slot)
         {
             Slot = slot;
-            SlotInventory.OnChanged.Add((User user) => Log.WriteLine(Localizer.DoStr($"{user.Name} changed slot inventory")));
-
             SlotInventory.OnChanged.Add(_ => { this.Changed(nameof(PartName)); this.Changed(nameof(SlotInventory)); });
         }
 

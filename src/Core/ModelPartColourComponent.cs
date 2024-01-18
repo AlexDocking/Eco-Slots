@@ -35,10 +35,8 @@ namespace Parts
         }
         private void OnPartChanged(Slot slot)
         {
-            Log.WriteLine(Localizer.DoStr("ModelPartColourComponent.OnPartChanged"));
             if (!partViews.TryGetValue(slot, out ModelColourSetterViewController viewForSlot)) return;
 
-            Log.WriteLine(Localizer.DoStr("view for slot"));
             IHasModelPartColourComponent colourComponent = slot.Part as IHasModelPartColourComponent;
             viewForSlot.SetModel(Parent, colourComponent);
             

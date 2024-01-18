@@ -24,7 +24,7 @@ namespace Parts
             {
                 return Localizer.NotLocalized($"<mark={ColourHex}>________________</mark>");
             }
-            set { Localizer.DoStr("Shouldn't be settable:" + value); }
+            set { }
         }
 
         [SyncToView, Autogen, AutoRPC]
@@ -116,7 +116,6 @@ namespace Parts
 
         public void SetModel(IHasModelPartColourComponent component)
         {
-            Log.WriteLine(Localizer.DoStr("ColouredPartViewController " + component?.DisplayName));
             Model?.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), OnModelChanged);
             Model = component;
             Model?.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), OnModelChanged);
@@ -133,7 +132,6 @@ namespace Parts
         /// </summary>
         private void OnModelChanged()
         {
-            Log.WriteLine(Localizer.DoStr("ColouredPartViewController.OnModelChanged"));
             if (Model == null) return;
             r = Model.ColourData.Colour.R;
             g = Model.ColourData.Colour.G;

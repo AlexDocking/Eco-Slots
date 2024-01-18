@@ -23,7 +23,7 @@ namespace Parts
         [Autogen, SyncToView, HideRoot, HideRootListEntry]
         public ControllerList<SlotView> PartsUI { get; private set; }
 
-        private PartsContainer PartsContainer { get; set; }
+        private IPartsContainer PartsContainer { get; set; }
         public PartSlotsUIComponent()
         {
             PartsUI = new ControllerList<SlotView>(this, nameof(PartsUI), Array.Empty<SlotView>());

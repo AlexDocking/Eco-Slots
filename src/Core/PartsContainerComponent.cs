@@ -15,7 +15,7 @@ namespace Parts
     public class PartsContainerComponent : WorldObjectComponent, IPersistentData
     {
         [Serialized, SyncToView, NewTooltipChildren(Eco.Shared.Items.CacheAs.Instance)]
-        public PartsContainer PartsContainer
+        public IPartsContainer PartsContainer
         {
             get
             {
@@ -24,17 +24,16 @@ namespace Parts
             set => partsContainer = value;
         }
         
-        private PartsContainer partsContainer;
+        private IPartsContainer partsContainer;
 
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
 
         //Created by world object when first placed
-        
         public object PersistentData
         {
             get => PartsContainer; set
             {
-                PartsContainer = value as PartsContainer ?? new PartsContainer();
+                PartsContainer = value as IPartsContainer ?? new PartsContainer();
             }
         }
     }

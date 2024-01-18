@@ -63,7 +63,7 @@ namespace Parts.Tests
             partsContainer.Initialize(worldObject);
 
             int calls = 0;
-            Action<PartsContainer> callback = container =>
+            Action<IPartsContainer> callback = container =>
                         {
                             calls += 1;
                             DebugUtils.AssertEquals(partsContainer, container);

@@ -22,6 +22,14 @@ using Eco.Core.Systems;
 using Eco.Core.PropertyHandling;
 using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
 
+namespace Parts
+{
+    public interface IPartsContainerWorldObject
+    {
+        public void PartsContainerSetup(IPartsContainer existingContainer, out IPartsContainer newContainer);
+    }
+}
+
 namespace KitchenUnits
 {
     [NoIcon]
@@ -32,7 +40,7 @@ namespace KitchenUnits
     [RequireComponent(typeof(PartColoursUIComponent))]
     [RequireComponent(typeof(PartSlotsUIComponent))]
     [RequireComponent(typeof(ModelReplacerComponent))]
-    public class KitchenCupboardObject : WorldObject, IRepresentsItem, IThreadSafeSubscriptions
+    public class KitchenCupboardObject : WorldObject, IRepresentsItem, IThreadSafeSubscriptions, IPartsContainerWorldObject
     {
         public override LocString DisplayName => Localizer.DoStr("Kitchen Base Cabinet");
 
@@ -40,16 +48,17 @@ namespace KitchenUnits
         protected override void Initialize()
         {
             base.Initialize();
-            bool isNewWorldObject = GetComponent<PartsContainerComponent>().PartsContainer == null;
-            PartsContainer partsContainer = GetComponent<PartsContainerComponent>().PartsContainer;
-            if (isNewWorldObject)
-            {
-                partsContainer = new PartsContainer();
-                GetComponent<PartsContainerComponent>().PartsContainer = partsContainer;
-            }
-            EnsureSlotsHaveCorrectParts(partsContainer);
+            PartsContainerSetup(GetComponent<PartsContainerComponent>().PartsContainer, out IPartsContainer newContainer);
+            GetComponent<PartsContainerComponent>().PartsContainer = newContainer;
 
-            IReadOnlyList<Slot> slots = partsContainer.Slots;
+            newContainer.Initialize(this);
+        }
+        public void PartsContainerSetup(IPartsContainer existingContainer, out IPartsContainer newContainer)
+        {
+            newContainer = existingContainer ?? new PartsContainer();
+            EnsureSlotsHaveCorrectParts(newContainer);
+
+            IReadOnlyList<Slot> slots = newContainer.Slots;
             BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
             slotRestrictionManager.SetTypeRestriction(slots[0], new[] { typeof(KitchenBaseCabinetBoxItem) });
             slotRestrictionManager.SetOptional(slots[0], false);
@@ -60,11 +69,10 @@ namespace KitchenUnits
             slotRestrictionManager.SetTypeRestriction(slots[2], new[] { typeof(KitchenCabinetFlatDoorItem), typeof(KitchenCupboardRaisedPanelDoorItem) });
             slotRestrictionManager.SetOptional(slots[2], true);
 
-            partsContainer.SlotRestrictionManager = slotRestrictionManager;
-            partsContainer.Initialize(this);
+            newContainer.SlotRestrictionManager = slotRestrictionManager;
         }
 
-        private static void EnsureSlotsHaveCorrectParts(PartsContainer partsContainer)
+        private static void EnsureSlotsHaveCorrectParts(IPartsContainer partsContainer)
         {
             IReadOnlyList<Slot> slots = partsContainer.Slots;
             for (int i = 0; i < 3 - slots.Count; i++)
@@ -112,7 +120,8 @@ namespace KitchenUnits
             ColourData = colourData;
         }
         private ModelPartColouring colourData = new ModelPartColouring();
-        [Serialized] public ModelPartColouring ColourData
+        [Serialized]
+        public ModelPartColouring ColourData
         {
             get => colourData; set
             {

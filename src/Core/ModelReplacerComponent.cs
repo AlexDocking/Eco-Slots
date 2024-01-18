@@ -22,8 +22,8 @@ namespace Parts
     {
         KitchenCupboardModelReplacements ModelReplacements { get; } = new KitchenCupboardModelReplacements();
         public WorldObject WorldObject { get; private set; }
-        public PartsContainer Model { get; private set; }
-        public void SetModel(WorldObject worldObject, PartsContainer model)
+        public IPartsContainer Model { get; private set; }
+        public void SetModel(WorldObject worldObject, IPartsContainer model)
         {
             WorldObject = worldObject;
             Model?.NewPartInSlotEvent.Remove(OnPartChanged);
@@ -50,7 +50,7 @@ namespace Parts
     }
     public class KitchenCupboardModelReplacements 
     {
-        public void SetEnabledParts(WorldObject worldObject, PartsContainer container)
+        public void SetEnabledParts(WorldObject worldObject, IPartsContainer container)
         {
             IReadOnlyList<IPart> parts = container.Parts;
 
@@ -66,7 +66,7 @@ namespace Parts
     public class ModelReplacerComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
         ModelReplacementViewController view = null;
-        private PartsContainer PartsContainer { get; set; }
+        private IPartsContainer PartsContainer { get; set; }
         public override void Initialize()
         {
             base.Initialize();

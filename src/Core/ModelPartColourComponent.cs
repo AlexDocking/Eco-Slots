@@ -20,7 +20,7 @@ namespace Parts
     public class ModelPartColourComponent : WorldObjectComponent
     {
         private IDictionary<Slot, ModelColourSetterViewController> partViews = new ThreadSafeDictionary<Slot, ModelColourSetterViewController>();
-        private PartsContainer PartsContainer { get; set; }
+        private IPartsContainer PartsContainer { get; set; }
 
         public override void Initialize()
         {

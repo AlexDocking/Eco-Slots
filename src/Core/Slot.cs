@@ -23,7 +23,7 @@ namespace Parts
         [SyncToView]
         public IPart Part => part;
 
-        public PartsContainer PartsContainer { get; private set; }
+        public IPartsContainer PartsContainer { get; private set; }
         /// <summary>
         /// Called whenever the slot inventory changes
         /// </summary>
@@ -32,7 +32,7 @@ namespace Parts
         /// Called whenever one of the part's properties e.g. colour is changed
         /// </summary>
         public ThreadSafeAction<Slot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<Slot, IPart, IPartProperty>();
-        public void Initialize(WorldObject worldObject, PartsContainer partsContainer)
+        public void Initialize(WorldObject worldObject, IPartsContainer partsContainer)
         {
             PartsContainer = partsContainer;
             if (this.Inventory is not AuthorizationInventory)

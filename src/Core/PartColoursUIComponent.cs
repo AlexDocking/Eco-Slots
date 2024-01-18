@@ -26,7 +26,7 @@ namespace Parts
         [Autogen, SyncToView, HideRoot, HideRootListEntry]
         public ControllerList<ColouredPartViewController> PartsUI { get; private set; }
         
-        private PartsContainer PartsContainer { get; set; }
+        private IPartsContainer PartsContainer { get; set; }
         public PartColoursUIComponent()
         {
             PartsUI = new ControllerList<ColouredPartViewController>(this, nameof(PartsUI), Array.Empty<ColouredPartViewController>());

@@ -24,7 +24,7 @@ namespace Parts
     }
     public class BasicSlotRestrictionManager : ISlotRestrictionManager
     {
-        public PartsContainer PartsContainer { get; private set; }
+        public IPartsContainer PartsContainer { get; private set; }
         private IDictionary<Slot, ISet<Type>> ValidItemTypesBySlot { get; } = new ThreadSafeDictionary<Slot, ISet<Type>>();
         private IDictionary<Slot, SpecificItemTypesRestriction> SlotTypeInventoryRestrictions { get; } = new ThreadSafeDictionary<Slot, SpecificItemTypesRestriction>();
         

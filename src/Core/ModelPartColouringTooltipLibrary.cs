@@ -69,9 +69,9 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         /// </summary>
         /// <param name="partsContainer"></param>
         /// <returns></returns>
-        [TooltipAffectedBy(typeof(PartsContainer), nameof(PartsContainer.NewPartInSlotEvent))]
-        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(PartsContainer), flags:TTFlags.ClearCacheForAllUsers)]//, TooltipAffectedBy(nameof(OnPartChanged))]
-        public static LocString CurrentPartsListDescription(this PartsContainer partsContainer)
+        [TooltipAffectedBy(typeof(IPartsContainer), nameof(IPartsContainer.NewPartInSlotEvent))]
+        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IPartsContainer), flags:TTFlags.ClearCacheForAllUsers)]//, TooltipAffectedBy(nameof(OnPartChanged))]
+        public static LocString CurrentPartsListDescription(this IPartsContainer partsContainer)
         {
             List<LocString> partTooltips = new List<LocString>
             {

@@ -17,7 +17,19 @@ using System.Linq;
 namespace Parts
 {
     [Serialized]
-    public class PartsContainer : IController, INotifyPropertyChanged, IClearRequestHandler
+    public interface IPartsContainer : IController, INotifyPropertyChanged
+    {
+        IReadOnlyList<IPart> Parts { get; }
+        IReadOnlyList<Slot> Slots { get; }
+        ISlotRestrictionManager SlotRestrictionManager { get; set; }
+        ThreadSafeAction<Slot> NewPartInSlotEvent { get; }
+
+        void AddPart(Slot slot, IPart part);
+        void Initialize(WorldObject worldObject);
+        void RemovePart(Slot slot);
+    }
+    [Serialized]
+    public class PartsContainer : IPartsContainer, IClearRequestHandler
     {
         //not used
         [Serialized] public string Name { get; set; } = "Serialized Name";
@@ -34,7 +46,7 @@ namespace Parts
         /// <summary>
         /// Called when any part changes and property e.g. colour, or when any slot gains, loses or gets a different part
         /// </summary>
-        public static ThreadSafeAction<PartsContainer> PartsContainerChangedEventGlobal { get; } = new ThreadSafeAction<PartsContainer>();
+        public static ThreadSafeAction<IPartsContainer> PartsContainerChangedEventGlobal { get; } = new ThreadSafeAction<IPartsContainer>();
         public void AddPart(Slot slot, IPart part)
         {
             slot.TryAddPart(part);

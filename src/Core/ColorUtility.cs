@@ -5,6 +5,7 @@ namespace Parts
 {
     public static class ColorUtility
     {
+        public static string HexRGB(this Color colour) => RGBHex(colour.HexRGBA);
         public static string RGBHex(string hex)
         {
             if (!IsValidColourHex(hex))

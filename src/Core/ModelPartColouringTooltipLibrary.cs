@@ -27,7 +27,8 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
             PartNotifications.PartPropertyChangedEventGlobal.Add((part, property) => { Log.WriteLine(Localizer.DoStr("Global part property changed"));  if (part is IController controller) ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColourComponentTooltip), null, controller); });
 
             ModelPartColouring.OnColourChangedGlobal.Add(colouring => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColouringTooltip), null, colouring));
-            PartsContainer.PartsContainerChangedEventGlobal.Add(partsContainer => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(CurrentPartsListDescription), null, partsContainer));
+            PartsContainer.PartsContainerChangedEventGlobal.Add(partsContainer 
+                => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(CurrentPartsListDescription), null, partsContainer));
         }
         /// <summary>
         /// Generates tooltip on items which derive IHasModelPartColourComponent

@@ -34,7 +34,7 @@ namespace KitchenUnits
     [RequireComponent(typeof(ModelReplacerComponent))]
     public class KitchenCupboardObject : WorldObject, IRepresentsItem, IThreadSafeSubscriptions
     {
-        public override LocString DisplayName => Localizer.DoStr("Kitchen Cupboard");
+        public override LocString DisplayName => Localizer.DoStr("Kitchen Base Cabinet");
 
         public Type RepresentedItemType => typeof(KitchenCupboardItem);
         protected override void Initialize()
@@ -62,8 +62,6 @@ namespace KitchenUnits
 
             partsContainer.SlotRestrictionManager = slotRestrictionManager;
             partsContainer.Initialize(this);
-
-            ModTooltipLibrary.CurrentPartsListDescription(partsContainer);
         }
 
         private static void EnsureSlotsHaveCorrectParts(PartsContainer partsContainer)
@@ -99,8 +97,8 @@ namespace KitchenUnits
     }
 
     [Serialized]
-    [LocDisplayName("Kitchen Cupboard")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
+    [LocDisplayName("Kitchen Base Cabinet")]
+    [LocDescription("A kitchen cabinet that sits on the floor.")]
     public class KitchenCupboardItem : WorldObjectItem<KitchenCupboardObject>, IPersistentData
     {
         [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)]
@@ -137,7 +135,7 @@ namespace KitchenUnits
     }
     [Serialized]
     [LocDisplayName("Kitchen Cabinet Flat Door")]
-    [LocDescription("Completely flat.")]
+    [LocDescription("Completely flat on all sides, for a modern feel.")]
     public class KitchenCabinetFlatDoorItem : Item, IPart, IHasModelPartColourComponent
     {
         public KitchenCabinetFlatDoorItem() : base()
@@ -166,8 +164,8 @@ namespace KitchenUnits
         string IPart.DisplayName => "Flat Door";
     }
     [Serialized]
-    [LocDisplayName("Kitchen Cupboard Raised Panel Door")]
-    [LocDescription("A cupboard door with a raised panel in the centre.")]
+    [LocDisplayName("Kitchen Cabinet Raised Panel Door")]
+    [LocDescription("A cabinet door with a raised panel in the centre.")]
     public class KitchenCupboardRaisedPanelDoorItem : Item, IPart, IHasModelPartColourComponent
     {
         public KitchenCupboardRaisedPanelDoorItem() : base()
@@ -195,8 +193,8 @@ namespace KitchenUnits
         string IPart.DisplayName => "Raised Panel Door";
     }
     [Serialized]
-    [LocDisplayName("Kitchen Cupboard Worktop")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
+    [LocDisplayName("Kitchen Cabinet Worktop")]
+    [LocDescription("A surface to prepare meals on.")]
     public class KitchenCupboardWorktopItem : Item, IPart, IHasModelPartColourComponent
     {
         public KitchenCupboardWorktopItem() : base()
@@ -221,86 +219,6 @@ namespace KitchenUnits
             PartPropertyChangedEvent.Invoke(this, ColourData);
             PartNotifications.PartPropertyChangedEventGlobal.Invoke(this, ColourData);
         }
-        string IPart.DisplayName => "Cupboard Worktop";
-    }
-
-    [Serialized]
-    [LocDisplayName("Test 1")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColourItem : Item, IHasSerializableID
-    {
-        public ModelPartColouring ColourData { get; set; } = new ModelPartColouring();
-    }
-    [Serialized]
-    [LocDisplayName("Test 2")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour2Item : Item, IHasSerializableID
-    {
-        [SyncToView] public ModelPartColouring ColourData { get; set; } = new ModelPartColouring();
-    }
-    [Serialized]
-    [LocDisplayName("Test 3")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour3Item : Item, IHasSerializableID
-    {
-        [Serialized, SyncToView, Notify] public ModelPartColouring ColourData { get; set; } = new ModelPartColouring();
-        [NewTooltip(CacheAs.Instance), TooltipAffectedBy(nameof(ColourData), nameof(ModelPartColouring.Colour))] public string ColourTooltip() => ColorUtility.RGBHex(ColourData.Colour.HexRGBA);
-
-    }
-    [Serialized]
-    [LocDisplayName("Test 4")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour4Item : Item, IHasSerializableID
-    {
-        public ModelPartColouring ColourData = new ModelPartColouring();
-    }
-    [Serialized]
-    [LocDisplayName("Test 5")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour5Item : Item, IHasSerializableID
-    {
-    }
-    [Serialized]
-    [LocDisplayName("Test 6")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour6Item : Item, IHasSerializableID
-    {
-        public string Test { get; set; } = "Test String";
-    }
-    [Serialized]
-    [LocDisplayName("Test 7")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour7Item : Item, IHasSerializableID
-    {
-        [SyncToView] public string Test { get; set; } = "Test String";
-
-    }
-    [Serialized]
-    [LocDisplayName("Test 8")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour8Item : Item, IHasSerializableID
-    {
-        [Serialized] public string Test { get; set; } = "Test String";
-    }
-    [Serialized]
-    [LocDisplayName("Test 9")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour9Item : Item, IHasSerializableID
-    {
-        public HomeFurnishingValue Test => Item.Get<LumberDresserItem>().HomeValue;
-    }
-    [Serialized]
-    [LocDisplayName("Test 10")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour10Item : Item, IHasSerializableID
-    {
-        [SyncToView] public HomeFurnishingValue Test => Item.Get<LumberDresserItem>().HomeValue;
-    }
-    [Serialized]
-    [LocDisplayName("Test 11")]
-    [LocDescription("A fancy ashlar stone chair that has been adorned with gold. A throne fit for a king.")]
-    public class TestColour11Item : Item, IHasSerializableID
-    {
-        [NewTooltip(CacheAs.Instance)] public HomeFurnishingValue Test => Item.Get<LumberDresserItem>().HomeValue;
+        string IPart.DisplayName => "Worktop";
     }
 }

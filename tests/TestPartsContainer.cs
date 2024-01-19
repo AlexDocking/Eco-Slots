@@ -6,7 +6,7 @@ using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
-using KitchenUnits;
+using Parts.Kitchen;
 using Parts.Migration;
 using System;
 using System.Collections.Generic;

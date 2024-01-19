@@ -12,7 +12,7 @@ namespace Parts
 {
     [Serialized, AutogenClass]
     [UITypeName("PropertyPage")]
-    public class SlotView : IController, INotifyPropertyChanged
+    public class SlotViewController : IController, INotifyPropertyChanged
     {
         [SyncToView, Autogen]
         [UITypeName("GeneralHeader")]
@@ -33,7 +33,7 @@ namespace Parts
 
         public Slot Slot { get; init; }
 
-        public SlotView(Slot slot)
+        public SlotViewController(Slot slot)
         {
             Slot = slot;
             SlotInventory.OnChanged.Add(_ => { this.Changed(nameof(PartName)); this.Changed(nameof(SlotInventory)); });

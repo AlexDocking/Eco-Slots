@@ -48,7 +48,7 @@ namespace Parts
         {
             foreach(var (_, viewForSlot) in partViews.Where(s => s.Item1 == slot))
             {
-                IHasModelPartColourComponent colourComponent = slot.Part as IHasModelPartColourComponent;
+                IHasModelPartColour colourComponent = slot.Part as IHasModelPartColour;
                 viewForSlot.SetModel(colourComponent);
             }
             PartsUI.Set(Viewers);
@@ -62,7 +62,7 @@ namespace Parts
             {
                 Slot slot = slots[i];
                 IPart part = slot.Part;
-                IHasModelPartColourComponent partColourComponent = (part as IHasModelPartColourComponent);
+                IHasModelPartColour partColourComponent = (part as IHasModelPartColour);
                 ColouredPartViewController partView = new ColouredPartViewController();
                 partView.SetModel(partColourComponent);
                 partViews.Add((slot, partView));

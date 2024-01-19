@@ -20,15 +20,15 @@ namespace Parts
     [RequireComponent(typeof(PartsContainerComponent))]
     public class PartSlotsUIComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
-        private IList<(Slot, SlotView)> slotViews = new ThreadSafeList<(Slot, SlotView)>();
-        private IEnumerable<SlotView> Viewers => slotViews.Select(pair => pair.Item2);
+        private IList<(Slot, SlotViewController)> slotViews = new ThreadSafeList<(Slot, SlotViewController)>();
+        private IEnumerable<SlotViewController> Viewers => slotViews.Select(pair => pair.Item2);
         [Autogen, SyncToView, HideRoot, HideRootListEntry]
-        public ControllerList<SlotView> PartsUI { get; private set; }
+        public ControllerList<SlotViewController> PartsUI { get; private set; }
 
         private IPartsContainer PartsContainer { get; set; }
         public PartSlotsUIComponent()
         {
-            PartsUI = new ControllerList<SlotView>(this, nameof(PartsUI), Array.Empty<SlotView>());
+            PartsUI = new ControllerList<SlotViewController>(this, nameof(PartsUI), Array.Empty<SlotViewController>());
         }
         public override void Initialize()
         {
@@ -43,7 +43,7 @@ namespace Parts
             for (int i = 0; i < slots.Count; i++)
             {
                 Slot slot = slots[i];
-                SlotView slotView = new SlotView(slot);
+                SlotViewController slotView = new SlotViewController(slot);
                 slotViews.Add((slot, slotView));
                 slot.NewPartInSlotEvent.Add(PartsUI.NotifyChanged);
             }

@@ -16,15 +16,7 @@ using Eco.Gameplay.Systems.NewTooltip;
 using Parts.Migration;
 using Eco.Shared.Utils;
 
-namespace Parts
-{
-    public interface IPartsContainerWorldObject
-    {
-        public IPartsContainerSchema GetPartsContainerSchema();
-    }
-}
-
-namespace KitchenUnits
+namespace Parts.Kitchen
 {
     [NoIcon]
     [Serialized]
@@ -44,7 +36,6 @@ namespace KitchenUnits
             return new KitchenBaseCabinetSchema();
         }
     }
-
     [Serialized]
     [LocDisplayName("Kitchen Base Cabinet")]
     [LocDescription("A kitchen cabinet that sits on the floor.")]
@@ -57,7 +48,7 @@ namespace KitchenUnits
     [Serialized]
     [LocDisplayName("Kitchen Base Cabinet Box")]
     [LocDescription("The sides, base and shelves of a kitchen cabinet that sits on the floor.")]
-    public class KitchenBaseCabinetBoxItem : Item, IPart, IHasModelPartColourComponent
+    public class KitchenBaseCabinetBoxItem : Item, IPart, IHasModelPartColour
     {
         public KitchenBaseCabinetBoxItem() : base()
         {
@@ -80,7 +71,7 @@ namespace KitchenUnits
     [Serialized]
     [LocDisplayName("Kitchen Cabinet Flat Door")]
     [LocDescription("Completely flat on all sides, for a modern feel.")]
-    public class KitchenCabinetFlatDoorItem : Item, IPart, IHasModelPartColourComponent
+    public class KitchenCabinetFlatDoorItem : Item, IPart, IHasModelPartColour
     {
         public KitchenCabinetFlatDoorItem() : base()
         {
@@ -103,7 +94,7 @@ namespace KitchenUnits
     [Serialized]
     [LocDisplayName("Kitchen Cabinet Raised Panel Door")]
     [LocDescription("A cabinet door with a raised panel in the centre.")]
-    public class KitchenCupboardRaisedPanelDoorItem : Item, IPart, IHasModelPartColourComponent
+    public class KitchenCupboardRaisedPanelDoorItem : Item, IPart, IHasModelPartColour
     {
         public KitchenCupboardRaisedPanelDoorItem() : base()
         {
@@ -126,7 +117,7 @@ namespace KitchenUnits
     [Serialized]
     [LocDisplayName("Kitchen Cabinet Worktop")]
     [LocDescription("A surface to prepare meals on.")]
-    public class KitchenCupboardWorktopItem : Item, IPart, IHasModelPartColourComponent
+    public class KitchenCupboardWorktopItem : Item, IPart, IHasModelPartColour
     {
         public KitchenCupboardWorktopItem() : base()
         {

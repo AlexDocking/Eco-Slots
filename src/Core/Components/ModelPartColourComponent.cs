@@ -37,7 +37,7 @@ namespace Parts
         {
             if (!partViews.TryGetValue(slot, out ModelColourSetterViewController viewForSlot)) return;
 
-            IHasModelPartColourComponent colourComponent = slot.Part as IHasModelPartColourComponent;
+            IHasModelPartColour colourComponent = slot.Part as IHasModelPartColour;
             viewForSlot.SetModel(Parent, colourComponent);
             
         }
@@ -49,7 +49,7 @@ namespace Parts
             {
                 Slot slot = slots[i];
                 IPart part = slot.Part;
-                IHasModelPartColourComponent partColourComponent = part as IHasModelPartColourComponent;
+                IHasModelPartColour partColourComponent = part as IHasModelPartColour;
 
                 ModelColourSetterViewController partView = new ModelColourSetterViewController();
                 partView.SetModel(Parent, partColourComponent);

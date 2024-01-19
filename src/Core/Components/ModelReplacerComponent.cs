@@ -7,7 +7,7 @@ using Eco.Shared.Networking;
 using Eco.Shared.Pools;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
-using KitchenUnits;
+using Parts.Kitchen;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

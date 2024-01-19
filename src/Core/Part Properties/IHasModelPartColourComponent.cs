@@ -1,6 +1,6 @@
 ﻿namespace Parts
 {
-    public interface IHasModelPartColourComponent : IPart
+    public interface IHasModelPartColour : IPart
     {
         public ModelPartColouring ColourData { get; }
     }

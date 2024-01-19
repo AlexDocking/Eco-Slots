@@ -11,11 +11,10 @@ using Eco.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Parts;
 using Eco.Core.Controller;
-using Parts.Vehicles;
+using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
 
-namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
+namespace Parts
 {
     [TooltipLibrary]
     public static class ModTooltipLibrary
@@ -23,12 +22,12 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         public static ThreadSafeDictionary<Type, Func<object, LocString>> TooltipsByType { get; } = new ThreadSafeDictionary<Type, Func<object, LocString>>();
         public static void Initialize()
         {
-            TooltipsByType.Add(typeof(ModelPartColouring), o => ColourDataTooltip(o as ModelPartColouring));
-            TooltipsByType.Add(typeof(ICustomStorageSize), o => CustomStorageSizeTooltip(o as ICustomStorageSize));
+            TooltipsByType.Add(typeof(ModelPartColouring), o => (o as ModelPartColouring).ColourDataTooltip());
+            TooltipsByType.Add(typeof(ICustomStorageSize), o => (o as ICustomStorageSize).CustomStorageSizeTooltip());
             PartNotifications.PartPropertyChangedEventGlobal.Add((part, property) => { if (part is IController controller) ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColourComponentTooltip), null, controller); });
 
             ModelPartColouring.OnColourChangedGlobal.Add(colouring => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColouringTooltip), null, colouring));
-            PartsContainer.PartsContainerChangedEventGlobal.Add(partsContainer 
+            PartsContainer.PartsContainerChangedEventGlobal.Add(partsContainer
                 => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(CurrentPartsListDescription), null, partsContainer));
         }
         /// <summary>
@@ -36,9 +35,9 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         /// </summary>
         /// <param name="part"></param>
         /// <returns></returns>
-        [TooltipAffectedBy(typeof(IHasModelPartColourComponent), nameof(IHasModelPartColourComponent.ColourData), nameof(ModelPartColouring.Colour))]
-        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IHasModelPartColourComponent))]
-        public static LocString ModelPartColourComponentTooltip(this IHasModelPartColourComponent part) => part != Item.Get(part.GetType()) ? new TooltipSection(part.ColourData.ModelPartColouringTooltip()) : LocString.Empty;
+        [TooltipAffectedBy(typeof(IHasModelPartColour), nameof(IHasModelPartColour.ColourData), nameof(ModelPartColouring.Colour))]
+        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IHasModelPartColour))]
+        public static LocString ModelPartColourComponentTooltip(this IHasModelPartColour part) => part != Item.Get(part.GetType()) ? new TooltipSection(part.ColourData.ModelPartColouringTooltip()) : LocString.Empty;
 
         /// <summary>
         /// Generates tooltip on items which derive IHasCustomStorageSize
@@ -49,7 +48,7 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IHasCustomStorageSize))]
         public static LocString CustomStorageSizeComponentTooltip(this IHasCustomStorageSize part) => new TooltipSection(Localizer.DoStr("Storage Size"), part.StorageSizeModifier.CustomStorageSizeTooltip());
 
-        
+
         /// <summary>
         /// Tooltip part on a parts container to show the colour info for one of its installed parts
         /// </summary>
@@ -67,8 +66,8 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         /// <returns></returns>
         [TooltipAffectedBy(typeof(ModelPartColouring), nameof(ModelPartColouring.Colour))]
         [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(ModelPartColouring))]
-        public static LocString ModelPartColouringTooltip(this ModelPartColouring colourData) => new TooltipSection(Localizer.DoStr("Colour Data"), ColourDataTooltip(colourData));
-        
+        public static LocString ModelPartColouringTooltip(this ModelPartColouring colourData) => new TooltipSection(Localizer.DoStr("Colour Data"), colourData.ColourDataTooltip());
+
         /// <summary>
         /// Tooltip part on a parts container to show the colour info for one of its installed parts
         /// </summary>
@@ -91,7 +90,7 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         /// <param name="partsContainer"></param>
         /// <returns></returns>
         [TooltipAffectedBy(typeof(IPartsContainer), nameof(IPartsContainer.NewPartInSlotEvent))]
-        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IPartsContainer), flags:TTFlags.ClearCacheForAllUsers)]
+        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IPartsContainer), flags: TTFlags.ClearCacheForAllUsers)]
         public static LocString CurrentPartsListDescription(this IPartsContainer partsContainer)
         {
             List<LocString> partTooltips = new List<LocString>

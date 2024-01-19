@@ -5,7 +5,7 @@ using Eco.Core.Utils;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Shared.Utils;
 using Eco.Shared.View;
-using KitchenUnits;
+using Parts.Kitchen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +44,7 @@ namespace Parts.Tests
             DebugUtils.AssertEquals(Color.Orange, colouring.Colour, "Did not set colour correctly");
         }
 
-        private class TestColouredPart : IHasModelPartColourComponent
+        private class TestColouredPart : IHasModelPartColour
         {
             public ModelPartColouring ColourData { get; internal set; } = new ModelPartColouring();
 

@@ -112,9 +112,9 @@ namespace Parts
         private float g = 1;
         private float b = 1;
 
-        public IHasModelPartColourComponent Model { get; private set; }
+        public IHasModelPartColour Model { get; private set; }
 
-        public void SetModel(IHasModelPartColourComponent component)
+        public void SetModel(IHasModelPartColour component)
         {
             Model?.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), OnModelChanged);
             Model = component;

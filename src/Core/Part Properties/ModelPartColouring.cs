@@ -8,8 +8,6 @@ using System.ComponentModel;
 
 namespace Parts
 {
-    public interface IPartProperty : INotifyPropertyChanged { }
-
     [Serialized]
     public class ModelPartColouring : IController, INotifyPropertyChanged, IPartProperty
     {

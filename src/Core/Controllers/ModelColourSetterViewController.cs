@@ -13,9 +13,9 @@ namespace Parts
     public class ModelColourSetterViewController : IController, INotifyPropertyChanged
     {
         public WorldObject WorldObject { get; private set; }
-        public IHasModelPartColourComponent Model { get; private set; }
+        public IHasModelPartColour Model { get; private set; }
 
-        public void SetModel(WorldObject worldObject, IHasModelPartColourComponent model)
+        public void SetModel(WorldObject worldObject, IHasModelPartColour model)
         {
             WorldObject = worldObject;
             Model?.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), OnModelChanged);

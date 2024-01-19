@@ -3,7 +3,6 @@ using Eco.Core.Utils;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
-using Eco.Mods.TechTree;
 using Eco.Shared.Utils;
 using KitchenUnits;
 using System;
@@ -143,9 +142,7 @@ namespace Parts.Tests
         public static void ShouldChangeAnimatorStateColours()
         {
             //create an object which sets up no new slots or parts of its own
-            WorldObject worldObject = new LimestoneOtterStatueObject();
-            PartsContainerComponent partsContainerComponent = worldObject.GetOrCreateComponent<PartsContainerComponent>();
-            ModelPartColourComponent componentToSetColourAnimatorStates = worldObject.GetOrCreateComponent<ModelPartColourComponent>();
+            TestWorldObject worldObject = new TestWorldObject();
 
             //create a new parts container with a part which has a colour
             KitchenBaseCabinetBoxItem box = new KitchenBaseCabinetBoxItem();
@@ -154,11 +151,11 @@ namespace Parts.Tests
             box.ColourData.Colour = targetColour;
             Slot slot = new Slot();
             partsContainer.AddPart(slot, box);
-            Item t;
-            partsContainerComponent.PartsContainer = partsContainer;
-            partsContainer.Initialize(worldObject);
-            componentToSetColourAnimatorStates.Initialize();
-            componentToSetColourAnimatorStates.PostInitialize();
+
+
+            worldObject.Schema = new TestPartsContainerSchema(partsContainer);
+
+            worldObject.InitializeForTest();
 
             //check the animated states for colour was set
             worldObject.AnimatedStates.TryGetValue(box.ColourData.ModelName + "-Red", out object red);
@@ -182,19 +179,17 @@ namespace Parts.Tests
         public static void ShouldChangeEnabledModelParts()
         {
             //create an object which sets up no new slots or parts of its own
-            WorldObject worldObject = new LimestoneOtterStatueObject();
-            PartsContainerComponent partsContainerComponent = worldObject.GetOrCreateComponent<PartsContainerComponent>();
-            ModelReplacerComponent componentToSetEnabledModelParts = worldObject.GetOrCreateComponent<ModelReplacerComponent>();
+            TestWorldObject worldObject = new TestWorldObject();
 
             //create a new parts container with a part which has a colour
             PartsContainer partsContainer = new PartsContainer();
             Slot slot = new Slot();
             partsContainer.AddPart(slot, null);
 
-            partsContainerComponent.PartsContainer = partsContainer;
-            partsContainer.Initialize(worldObject);
-            componentToSetEnabledModelParts.Initialize();
-            componentToSetEnabledModelParts.PostInitialize();
+
+            worldObject.Schema = new TestPartsContainerSchema(partsContainer);
+
+            worldObject.InitializeForTest();
 
             KitchenCabinetFlatDoorItem door = new KitchenCabinetFlatDoorItem();
             worldObject.AnimatedStates.TryGetValue("Flat Door", out object flatDoorEnabled);

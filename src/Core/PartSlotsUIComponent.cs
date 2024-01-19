@@ -2,8 +2,10 @@
 using Eco.Core.Utils;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Utils;
+using Eco.Shared.Localization;
 using Eco.Shared.Networking;
 using Eco.Shared.Serialization;
+using Eco.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -37,6 +39,7 @@ namespace Parts
         {
             base.PostInitialize();
             IReadOnlyList<Slot> slots = PartsContainer.Slots;
+
             for (int i = 0; i < slots.Count; i++)
             {
                 Slot slot = slots[i];

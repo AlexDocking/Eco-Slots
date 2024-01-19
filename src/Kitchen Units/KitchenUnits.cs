@@ -9,19 +9,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Parts;
 using Eco.Shared.Localization;
-using Eco.Shared.Utils;
 using Eco.Core.Controller;
 using Eco.Core.Utils;
-using System.ComponentModel;
 using Eco.Shared.Items;
 using Eco.Gameplay.Systems.NewTooltip;
-using System.IO;
-using Eco.Gameplay.Housing.PropertyValues;
-using Eco.Mods.TechTree;
-using Eco.Core.Systems;
-using Eco.Core.PropertyHandling;
-using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
 using Parts.Migration;
+using Eco.Shared.Utils;
 
 namespace Parts
 {
@@ -46,62 +39,10 @@ namespace KitchenUnits
         public override LocString DisplayName => Localizer.DoStr("Kitchen Base Cabinet");
 
         public Type RepresentedItemType => typeof(KitchenCupboardItem);
-        protected override void Initialize()
+        public IPartsContainerSchema GetPartsContainerSchema()
         {
-            base.Initialize();
-            PartsContainerSetup(GetComponent<PartsContainerComponent>().PartsContainer, out IPartsContainer newContainer);
-            GetComponent<PartsContainerComponent>().PartsContainer = newContainer;
-
-            newContainer.Initialize(this);
+            return new KitchenBaseCabinetSchema();
         }
-        public void PartsContainerSetup(IPartsContainer existingContainer, out IPartsContainer newContainer)
-        {
-            newContainer = existingContainer ?? new PartsContainer();
-            EnsureSlotsHaveCorrectParts(newContainer);
-
-            IReadOnlyList<Slot> slots = newContainer.Slots;
-            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
-            slotRestrictionManager.SetTypeRestriction(slots[0], new[] { typeof(KitchenBaseCabinetBoxItem) });
-            slotRestrictionManager.SetOptional(slots[0], false);
-
-            slotRestrictionManager.SetTypeRestriction(slots[1], new[] { typeof(KitchenCupboardWorktopItem) });
-            slotRestrictionManager.SetOptional(slots[1], false);
-
-            slotRestrictionManager.SetTypeRestriction(slots[2], new[] { typeof(KitchenCabinetFlatDoorItem), typeof(KitchenCupboardRaisedPanelDoorItem) });
-            slotRestrictionManager.SetOptional(slots[2], true);
-
-            newContainer.SlotRestrictionManager = slotRestrictionManager;
-        }
-
-        private static void EnsureSlotsHaveCorrectParts(IPartsContainer partsContainer)
-        {
-            IReadOnlyList<Slot> slots = partsContainer.Slots;
-            for (int i = 0; i < 3 - slots.Count; i++)
-            {
-                partsContainer.AddPart(new Slot(), null);
-            }
-            IPart preexistingPart0 = slots[0].Inventory.Stacks?.FirstOrDefault()?.Item as IPart;
-            IPart preexistingPart1 = slots[1].Inventory.Stacks?.FirstOrDefault()?.Item as IPart;
-
-            if (preexistingPart0 is not KitchenBaseCabinetBoxItem)
-            {
-                KitchenBaseCabinetBoxItem newBox = new KitchenBaseCabinetBoxItem();
-                if (slots[0].Part is IHasModelPartColourComponent colourComponent) newBox.ColourData.Colour = colourComponent.ColourData.Colour;
-                slots[0].Inventory.Stacks.First().Item = newBox;
-            }
-
-            if (preexistingPart1 is not KitchenCupboardWorktopItem)
-            {
-                KitchenCupboardWorktopItem newWorktop = new KitchenCupboardWorktopItem();
-                if (preexistingPart1 is IHasModelPartColourComponent colourComponent) newWorktop.ColourData.Colour = colourComponent.ColourData.Colour;
-                slots[1].Inventory.Stacks.First().Item = newWorktop;
-            }
-            slots[0].Name = "Unit";
-            slots[1].Name = "Worktop";
-            slots[2].Name = "Door";
-        }
-
-        public IPartsContainerSchema GetPartsContainerSchema() => new KitchenBaseCabinetSchema();
     }
 
     [Serialized]

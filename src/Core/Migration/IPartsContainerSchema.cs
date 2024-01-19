@@ -14,11 +14,6 @@ namespace Parts.Migration
     {
         IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer);
     }
-    
-    public static class SchemaRegister
-    {
-        public static Dictionary<Type, IPartsContainerSchema> SchemasByWorldObjectType { get; } = new Dictionary<Type, IPartsContainerSchema>();
-    }
     public class KitchenBaseCabinetSchema : IPartsContainerSchema
     {
         public IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer)

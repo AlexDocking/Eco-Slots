@@ -3,7 +3,6 @@ using Eco.Core.Utils;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Players;
 using Eco.Gameplay.Systems.NewTooltip;
-using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
 using Eco.Gameplay.Systems.TextLinks;
 using Eco.Shared.IoC;
 using Eco.Shared.Items;
@@ -14,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Parts;
 using Eco.Core.Controller;
+using Parts.Vehicles;
 
 namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
 {
@@ -24,6 +24,7 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         public static void Initialize()
         {
             TooltipsByType.Add(typeof(ModelPartColouring), o => ColourDataTooltip(o as ModelPartColouring));
+            TooltipsByType.Add(typeof(ICustomStorageSize), o => CustomStorageSizeTooltip(o as ICustomStorageSize));
             PartNotifications.PartPropertyChangedEventGlobal.Add((part, property) => { if (part is IController controller) ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColourComponentTooltip), null, controller); });
 
             ModelPartColouring.OnColourChangedGlobal.Add(colouring => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColouringTooltip), null, colouring));
@@ -38,7 +39,27 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         [TooltipAffectedBy(typeof(IHasModelPartColourComponent), nameof(IHasModelPartColourComponent.ColourData), nameof(ModelPartColouring.Colour))]
         [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IHasModelPartColourComponent))]
         public static LocString ModelPartColourComponentTooltip(this IHasModelPartColourComponent part) => part != Item.Get(part.GetType()) ? new TooltipSection(part.ColourData.ModelPartColouringTooltip()) : LocString.Empty;
+
+        /// <summary>
+        /// Generates tooltip on items which derive IHasCustomStorageSize
+        /// </summary>
+        /// <param name="part"></param>
+        /// <returns></returns>
+        [TooltipAffectedBy(typeof(IHasCustomStorageSize), nameof(IHasCustomStorageSize.StorageSizeModifier), nameof(ICustomStorageSize.NumberOfAdditionalSlots))]
+        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IHasCustomStorageSize))]
+        public static LocString CustomStorageSizeComponentTooltip(this IHasCustomStorageSize part) => new TooltipSection(Localizer.DoStr("Storage Size"), part.StorageSizeModifier.CustomStorageSizeTooltip());
+
         
+        /// <summary>
+        /// Tooltip part on a parts container to show the colour info for one of its installed parts
+        /// </summary>
+        /// <param name="colourData"></param>
+        /// <returns></returns>
+        public static LocString CustomStorageSizeTooltip(this ICustomStorageSize customStorageSize)
+        {
+            return Localizer.Do($"Increases the number of storage slots by {Text.Info(customStorageSize.NumberOfAdditionalSlots)}").Style(Text.Styles.Info);
+        }
+
         /// <summary>
         /// Generates tooltip for ModelPartColouring on an item
         /// </summary>
@@ -70,7 +91,7 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
         /// <param name="partsContainer"></param>
         /// <returns></returns>
         [TooltipAffectedBy(typeof(IPartsContainer), nameof(IPartsContainer.NewPartInSlotEvent))]
-        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IPartsContainer), flags:TTFlags.ClearCacheForAllUsers)]//, TooltipAffectedBy(nameof(OnPartChanged))]
+        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IPartsContainer), flags:TTFlags.ClearCacheForAllUsers)]
         public static LocString CurrentPartsListDescription(this IPartsContainer partsContainer)
         {
             List<LocString> partTooltips = new List<LocString>
@@ -100,12 +121,19 @@ namespace Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles
             List<LocString> partTooltip = new List<LocString>();
             foreach (object property in partProperties)
             {
-                if (TooltipsByType.TryGetValue(property.GetType(), out Func<object, LocString> tooltipMethod))
+                Type bestTooltipType = GetBestTooltipType(property.GetType());
+                if (bestTooltipType != null && TooltipsByType.TryGetValue(bestTooltipType, out Func<object, LocString> tooltipMethod))
                 {
                     partTooltip.Add(tooltipMethod(property));
                 }
             }
             return partTooltip.NewlineList();
+        }
+        //TODO: decide a better way to resolve which tooltip to use when multiple types are valid
+        public static Type GetBestTooltipType(Type objectType)
+        {
+            IEnumerable<Type> validTooltipTypes = TooltipsByType.Keys.Where(type => type.IsAssignableFrom(objectType));
+            return validTooltipTypes.FirstOrDefault();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Eco.Core.Tests;
 using Eco.Core.Utils;
+using Eco.Gameplay.Components.Storage;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
@@ -174,7 +175,7 @@ namespace Parts.Tests
         }
     }
     [Serialized]
-
+    [LocCategory("Hidden")]
     public class TestWorldObjectItem : WorldObjectItem<TestWorldObject>, IPersistentData
     {
         public ItemPersistentData persistentData;
@@ -185,10 +186,16 @@ namespace Parts.Tests
     [RequireComponent(typeof(PartsContainerComponent))]
     [RequireComponent(typeof(ModelReplacerComponent))]
     [RequireComponent(typeof(ModelPartColourComponent))]
+    [RequireComponent(typeof(PublicStorageComponent))]
     public class TestWorldObject : WorldObject, IPartsContainerWorldObject
     {
         public IPartsContainerSchema Schema { get; set; }
         public IPartsContainerSchema GetPartsContainerSchema() => Schema;
+        protected override void Initialize()
+        {
+            base.Initialize();
+            GetComponent<PublicStorageComponent>().Initialize(1, 10000);
+        }
     }
     public class TestPartsContainerSchema : IPartsContainerSchema
     {

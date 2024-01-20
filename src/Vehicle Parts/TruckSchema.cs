@@ -1,4 +1,6 @@
-﻿using Eco.Gameplay.Objects;
+﻿using Eco.Gameplay.Components.Storage;
+using Eco.Gameplay.Items;
+using Eco.Gameplay.Objects;
 using Eco.Shared.Utils;
 using Parts.Migration;
 using System.Collections.Generic;
@@ -11,10 +13,10 @@ namespace Parts.Vehicles
         public IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer)
         {
             existingContainer ??= PartsContainerFactory.Create();
-            PartsContainerSetup(existingContainer, out IPartsContainer newContainer);
+            PartsContainerSetup(worldObject, existingContainer, out IPartsContainer newContainer);
             return newContainer;
         }
-        public void PartsContainerSetup(IPartsContainer existingContainer, out IPartsContainer newContainer)
+        public void PartsContainerSetup(WorldObject worldObject, IPartsContainer existingContainer, out IPartsContainer newContainer)
         {
             newContainer = existingContainer;
             EnsureSlotsHaveCorrectParts(newContainer);
@@ -23,6 +25,10 @@ namespace Parts.Vehicles
             BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
             slotRestrictionManager.SetTypeRestriction(slots[0], new[] { typeof(StandardTruckBedItem), typeof(BigTruckBedItem) });
             slotRestrictionManager.SetOptional(slots[0], true);
+
+            Inventory publicStorage = worldObject.GetComponent<PublicStorageComponent>().Storage;
+            RequireEmptyStorageRestriction inventoryRestriction = new RequireEmptyStorageRestriction(publicStorage);
+            slotRestrictionManager.AddRestriction(slots[0], inventoryRestriction);
 
             newContainer.SlotRestrictionManager = slotRestrictionManager;
         }

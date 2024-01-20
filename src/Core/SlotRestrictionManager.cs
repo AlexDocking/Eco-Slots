@@ -16,6 +16,29 @@ namespace Parts
         public bool CanAddItemToSlot(Slot slot, Item item, out List<LocString> failureReasons);
         public bool CanRemoveItemFromSlot(Slot slot, Item item, out List<LocString > failureReasons);
     }
+    public class RequireEmptyStorageRestriction : InventoryRestriction
+    {
+        public override LocString Message => Localizer.DoStr("Storage must be empty");
+        public Inventory Inventory { get; }
+
+        public RequireEmptyStorageRestriction(Inventory inventory)
+        {
+            Inventory = inventory;
+        }
+        public override int MaxAccepted(RestrictionCheckData checkData, Item item, int currentQuantity)
+        {
+            Log.WriteLine(Localizer.DoStr("MaxAccepted - empty:" + Inventory.IsEmpty));
+            if (!Inventory.IsEmpty) return 0;
+            return base.MaxAccepted(checkData, item, currentQuantity);
+        }
+        public override int MaxPickup(RestrictionCheckData checkData, Item item, int currentQuantity)
+        {
+            Log.WriteLine(Localizer.DoStr("MaxPickup - empty:" + Inventory.IsEmpty));
+
+            if (!Inventory.IsEmpty) return 0;
+            return base.MaxPickup(checkData, item, currentQuantity);
+        }
+    }
     public class NoRemoveRestriction : InventoryRestriction
     {
         public override int Priority => 1000;
@@ -28,6 +51,10 @@ namespace Parts
         private IDictionary<Slot, ISet<Type>> ValidItemTypesBySlot { get; } = new ThreadSafeDictionary<Slot, ISet<Type>>();
         private IDictionary<Slot, SpecificItemTypesRestriction> SlotTypeInventoryRestrictions { get; } = new ThreadSafeDictionary<Slot, SpecificItemTypesRestriction>();
         
+        public void AddRestriction(Slot slot, InventoryRestriction inventoryRestriction)
+        {
+            slot.Inventory.AddInvRestriction(inventoryRestriction);
+        }
         public void SetOptional(Slot slot, bool isOptional)
         {
             if (isOptional) slot.Inventory.RemoveAllRestrictions(restriction => restriction is NoRemoveRestriction);

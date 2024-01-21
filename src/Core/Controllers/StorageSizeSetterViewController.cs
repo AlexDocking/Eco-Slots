@@ -56,8 +56,6 @@ namespace Parts
 
             }
             Log.WriteLine(Localizer.DoStr("Reset public storage to:" + publicStorageComponent?.Storage.Stacks.Count() + "," + BaseMaxWeight));
-            //SelectionStorageComponent selectionStorageComponent = WorldObject.GetComponent<SelectionStorageComponent>();
-            //selectionStorageComponent?.CreateInventory(totalNumberOfSlots, BaseMaxWeight);
         }
 
         #region IController

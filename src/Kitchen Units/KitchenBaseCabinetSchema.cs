@@ -47,14 +47,14 @@ namespace Parts.Kitchen
             {
                 KitchenBaseCabinetBoxItem newBox = new KitchenBaseCabinetBoxItem();
                 if (slots[0].Part is IHasModelPartColour colourComponent) newBox.ColourData.Colour = colourComponent.ColourData.Colour;
-                slots[0].Inventory.Stacks.First().Item = newBox;
+                slots[0].SetPart(newBox);
             }
 
             if (preexistingPart1 is not KitchenCupboardWorktopItem)
             {
                 KitchenCupboardWorktopItem newWorktop = new KitchenCupboardWorktopItem();
                 if (preexistingPart1 is IHasModelPartColour colourComponent) newWorktop.ColourData.Colour = colourComponent.ColourData.Colour;
-                slots[1].Inventory.Stacks.First().Item = newWorktop;
+                slots[1].SetPart(newWorktop);
             }
             slots[0].Name = "Unit";
             slots[1].Name = "Worktop";

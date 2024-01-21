@@ -46,7 +46,7 @@ namespace Parts.Vehicles
             if (preexistingPart0 is not IHasCustomStorageSize)
             {
                 StandardTruckBedItem newBed = new StandardTruckBedItem();
-                slots[0].Inventory.Stacks.First().Item = newBed;
+                slots[0].SetPart(newBed);
             }
             slots[0].Name = "Truck Bed";
         }

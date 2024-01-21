@@ -26,9 +26,20 @@ namespace Parts.Vehicles
             slotRestrictionManager.SetTypeRestriction(slots[0], new[] { typeof(StandardTruckBedItem), typeof(BigTruckBedItem) });
             slotRestrictionManager.SetOptional(slots[0], true);
 
+
             Inventory publicStorage = worldObject.GetComponent<PublicStorageComponent>().Storage;
+
             RequireEmptyStorageRestriction inventoryRestriction = new RequireEmptyStorageRestriction(publicStorage);
             slotRestrictionManager.AddRestriction(slots[0], inventoryRestriction);
+
+            publicStorage.OnChanged.Add(_ =>
+            {
+                foreach(Slot slot in slots)
+                {
+                    bool enabled = slot.Inventory.HasRestriction<RequireEmptyStorageRestriction>() ? publicStorage.IsEmpty : true;
+                    slotRestrictionManager.SetSlotEnabled(slot, enabled);
+                }
+            });
 
             newContainer.SlotRestrictionManager = slotRestrictionManager;
         }

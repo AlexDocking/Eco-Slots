@@ -74,7 +74,7 @@ namespace Parts.Tests
             item.ColourData.Colour = Color.Orange;
             DebugUtils.AssertEquals(1, calls, "Slot should trigger part property change event when part colour changes");
         }
-        
+
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldChangeAnimatorStateColours()
@@ -137,6 +137,33 @@ namespace Parts.Tests
 
             worldObject.AnimatedStates.TryGetValue("Flat Door", out flatDoorEnabled);
             DebugUtils.AssertEquals(true, flatDoorEnabled, "Should tell the model to enable the door when it is installed in the container");
+        }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldTriggerSlotEnabledEvent()
+        {
+            Slot slot = new Slot();
+            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
+            int calls = 0;
+            slotRestrictionManager.SlotEnabledChangedEvent.Add(s =>
+            {
+                calls++;
+                DebugUtils.AssertEquals(slot, s, "Event was called with wrong slot instance");
+            });
+            DebugUtils.Assert(slotRestrictionManager.IsSlotEnabled(slot), "Slot should be enabled by default");
+
+            slotRestrictionManager.SetSlotEnabled(slot, true);
+            DebugUtils.Assert(slotRestrictionManager.IsSlotEnabled(slot), "Slot should still be enabled");
+            DebugUtils.AssertEquals(0, calls, "Should not have triggered the event when the status did not change from enabled");
+
+            slotRestrictionManager.SetSlotEnabled(slot, false);
+            DebugUtils.Assert(!slotRestrictionManager.IsSlotEnabled(slot), "Slot should not be enabled");
+            DebugUtils.AssertEquals(1, calls, "Should have triggered the event when the status changed");
+
+            calls = 0;
+            slotRestrictionManager.SetSlotEnabled(slot, false);
+            DebugUtils.Assert(!slotRestrictionManager.IsSlotEnabled(slot), "Slot should still be disabled");
+            DebugUtils.AssertEquals(0, calls, "Should not have triggered the event when the status did not change from disabled");
         }
     }
 }

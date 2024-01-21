@@ -39,7 +39,6 @@ namespace Parts
             Log.WriteLine(Localizer.DoStr($"Storage modifier:{baseNumSlots}, {baseWeightLimit}, {components?.Count()}"));
             Log.WriteLine(Localizer.DoStr("parts:" + PartsContainer.Parts.Count()));
             Log.WriteLine(Localizer.DoStr("Modifers:" + PartsContainer.Parts.OfType<IHasCustomStorageSize>().Count()));
-
         }
         public override void PostInitialize()
         {

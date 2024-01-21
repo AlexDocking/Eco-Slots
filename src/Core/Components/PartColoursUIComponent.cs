@@ -17,7 +17,6 @@ namespace Parts
     [Serialized]
     [AutogenClass]
     [CreateComponentTabLoc("Part Colours")]
-    [NoIcon]
     [RequireComponent(typeof(ModelPartColourComponent))]
     public class PartColoursUIComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {

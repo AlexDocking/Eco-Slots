@@ -42,7 +42,7 @@ namespace Parts
             PublicStorageComponent publicStorageComponent = WorldObject.GetComponent<PublicStorageComponent>();
 
             LimitedInventory storage = publicStorageComponent.Storage as LimitedInventory;
-            if (storage != null)
+            if (storage != null && storage.Stacks.Count() != totalNumberOfSlots)
             {
                 List<ItemStack> newStacks = new List<ItemStack>();
                 for (int i = 0; i < totalNumberOfSlots; i++)

@@ -16,7 +16,6 @@ namespace Parts
     [Serialized]
     [AutogenClass]
     [CreateComponentTabLoc("Slots", true)]
-    [NoIcon]
     [RequireComponent(typeof(PartsContainerComponent))]
     public class PartSlotsUIComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
@@ -51,7 +50,8 @@ namespace Parts
             PartsUI.Callbacks.OnAdd.Add(ResetList);
             PartsUI.Callbacks.OnRemove.Add(ResetList);
         }
-        private void ResetList(INetObject sender, object obj)
+        private void ResetList(INetObject sender, object obj) => ResetList();
+        private void ResetList()
         {
             PartsUI.Set(Viewers);
             PartsUI.NotifyChanged();

@@ -1,10 +1,13 @@
-﻿using Eco.Core.Utils;
+﻿using Eco.Core.Controller;
+using Eco.Core.PropertyHandling;
+using Eco.Core.Utils;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Systems.TextLinks;
 using Eco.Shared.Localization;
 using Eco.Shared.Utils;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace Parts
@@ -15,6 +18,8 @@ namespace Parts
         public bool IsOptional(Slot slot);
         public bool CanAddItemToSlot(Slot slot, Item item, out List<LocString> failureReasons);
         public bool CanRemoveItemFromSlot(Slot slot, Item item, out List<LocString > failureReasons);
+        bool IsSlotEnabled(Slot slot);
+        public ThreadSafeAction<Slot> SlotEnabledChangedEvent { get; }
     }
     public class RequireEmptyStorageRestriction : InventoryRestriction
     {
@@ -27,14 +32,11 @@ namespace Parts
         }
         public override int MaxAccepted(RestrictionCheckData checkData, Item item, int currentQuantity)
         {
-            Log.WriteLine(Localizer.DoStr("MaxAccepted - empty:" + Inventory.IsEmpty));
             if (!Inventory.IsEmpty) return 0;
             return base.MaxAccepted(checkData, item, currentQuantity);
         }
         public override int MaxPickup(RestrictionCheckData checkData, Item item, int currentQuantity)
         {
-            Log.WriteLine(Localizer.DoStr("MaxPickup - empty:" + Inventory.IsEmpty));
-
             if (!Inventory.IsEmpty) return 0;
             return base.MaxPickup(checkData, item, currentQuantity);
         }
@@ -50,10 +52,29 @@ namespace Parts
         public IPartsContainer PartsContainer { get; private set; }
         private IDictionary<Slot, ISet<Type>> ValidItemTypesBySlot { get; } = new ThreadSafeDictionary<Slot, ISet<Type>>();
         private IDictionary<Slot, SpecificItemTypesRestriction> SlotTypeInventoryRestrictions { get; } = new ThreadSafeDictionary<Slot, SpecificItemTypesRestriction>();
-        
+        public ISet<Slot> DisabledSlots { get; } = new HashSet<Slot>();
+
+        public ThreadSafeAction<Slot> SlotEnabledChangedEvent { get; } = new ThreadSafeAction<Slot>();
+
         public void AddRestriction(Slot slot, InventoryRestriction inventoryRestriction)
         {
             slot.Inventory.AddInvRestriction(inventoryRestriction);
+        }
+        public bool IsSlotEnabled(Slot slot) => !DisabledSlots.Contains(slot);
+        public void SetSlotEnabled(Slot slot, bool enabled)
+        {
+            Log.WriteLine(Localizer.DoStr("Slot:" + slot.Name + " was " + (enabled ? "enabled" : "disabled")));
+            if (enabled)
+            {
+                if (DisabledSlots.Remove(slot))
+                {
+                    SlotEnabledChangedEvent.Invoke(slot);
+                }
+            }
+            else if (DisabledSlots.Add(slot))
+            {
+                SlotEnabledChangedEvent.Invoke(slot);
+            }
         }
         public void SetOptional(Slot slot, bool isOptional)
         {

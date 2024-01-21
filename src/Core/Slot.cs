@@ -46,19 +46,12 @@ namespace Parts
             }
             this.Inventory.SetOwner(worldObject);
             this.Inventory.OnChanged.Add(OnInventoryChanged);
-            UpdateKnownPart(Inventory.Stacks?.FirstOrDefault()?.Item as IPart);
+            OnInventoryChanged(null);
         }
         public bool SetPart(IPart part)
         {
-            if (part is not Item item) return false;
-            this.Inventory.Stacks.First().ReplaceStack(item, 1, true);
+            this.Inventory.Stacks.First().ReplaceStack(part as Item, 1, true);
             return true;
-        }
-        private void UpdateKnownPart(IPart newPart)
-        {
-            part?.PartPropertyChangedEvent.Remove(OnPartPropertyChanged);
-            part = newPart;
-            newPart?.PartPropertyChangedEvent.Add(OnPartPropertyChanged);
         }
         private void OnPartPropertyChanged(IPart part, IPartProperty partProperty)
         {
@@ -66,7 +59,13 @@ namespace Parts
         }
         private void OnInventoryChanged(User user)
         {
-            UpdateKnownPart(Inventory.Stacks?.FirstOrDefault()?.Item as IPart);
+            IPart newPart = Inventory.Stacks?.FirstOrDefault()?.Item as IPart;
+            if (part == newPart) return;
+
+            part?.PartPropertyChangedEvent.Remove(OnPartPropertyChanged);
+            part = newPart;
+            newPart?.PartPropertyChangedEvent.Add(OnPartPropertyChanged);
+
             NewPartInSlotEvent.Invoke();
         }
 

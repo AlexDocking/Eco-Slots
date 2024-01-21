@@ -17,17 +17,18 @@ using System.Threading.Tasks;
 
 namespace Parts.Tests
 {
+    [Serialized]
+    [Category("Hidden")]
+    public class TestPart : Item, IPart
+    {
+        public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
+
+        string IPart.DisplayName => "Test Part";
+    }
     [ChatCommandHandler]
     public static class TestParts
     {
-        [Serialized]
-        [Category("Hidden")]
-        public class TestPart : Item, IPart
-        {
-            public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
-
-            string IPart.DisplayName => "Test Part";
-        }
+        
         private class MySubscriptions : ISubscriptions<ThreadSafeSubscriptions>
         {
             public ThreadSafeSubscriptions Subscriptions { get; } = new ThreadSafeSubscriptions();

@@ -74,6 +74,34 @@ namespace Parts.Tests
             item.ColourData.Colour = Color.Orange;
             DebugUtils.AssertEquals(1, calls, "Slot should trigger part property change event when part colour changes");
         }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldSetPartCorrectly()
+        {
+            Slot slot = new Slot();
+            WorldObject worldObject = new TestWorldObject();
+            PartsContainer partsContainer = new PartsContainer();
+            slot.Initialize(worldObject, partsContainer);
+
+            TestPart item = new TestPart();
+            int calls = 0;
+            slot.NewPartInSlotEvent.Add(() => calls += 1);
+            DebugUtils.AssertEquals(null, slot.Part, "Slot should have no part until set");
+
+            slot.SetPart(null);
+            DebugUtils.AssertEquals(null, slot.Part, "Slot should have no part until set");
+            DebugUtils.AssertEquals(0, calls, "Slot should not trigger event when slot is not changed");
+
+            slot.SetPart(item);
+            slot.SetPart(item);
+            DebugUtils.AssertEquals(item, slot.Part, "Slot should have have set part");
+            DebugUtils.AssertEquals(1, calls, "Slot should trigger event once when slot is changed");
+
+            calls = 0;
+            slot.SetPart(null);
+            DebugUtils.AssertEquals(null, slot.Part, "Slot should have no part");
+            DebugUtils.AssertEquals(1, calls, "Slot should trigger event once when slot is changed");
+        }
 
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]

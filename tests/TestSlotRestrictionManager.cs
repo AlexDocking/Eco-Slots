@@ -5,9 +5,8 @@ using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Mods.TechTree;
 using Parts.Kitchen;
-using Parts.Migration;
 using System;
-using static Parts.Tests.TestPartsContainer;
+using static Parts.Tests.TestParts;
 
 namespace Parts.Tests
 {
@@ -89,7 +88,7 @@ namespace Parts.Tests
 
             Inventory storage = new LimitedInventory(1);
             BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
-            slotRestrictionManager.AddRestriction(slot, new RequireEmptyStorageRestriction(storage));
+            slotRestrictionManager.AddRequiredEmptyStorage(slot, storage);
 
             bool acceptsPartWhenStorageIsEmpty = slot.Inventory.GetMaxAccepted(Item.Get<KitchenCupboardWorktopItem>(), 0).Val > 0;
             DebugUtils.Assert(acceptsPartWhenStorageIsEmpty, "Slot should accept any part when the storage is empty");
@@ -107,6 +106,36 @@ namespace Parts.Tests
             storage.AddItem(new CornItem());
             bool canRemovePartWhenStorageIsNotEmpty = slot.Inventory.GetMaxPickup(Item.Get<KitchenCupboardWorktopItem>(), 1).Val > 0;
             DebugUtils.Assert(!canRemovePartWhenStorageIsNotEmpty, "Slot should not allow the part to be removed when the storage is not empty");
+        }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldTriggerSlotEnabledEvent()
+        {
+            Slot slot = new Slot();
+            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
+            int calls = 0;
+            slotRestrictionManager.SlotLockedChangedEvent.Add(s =>
+            {
+                calls++;
+                DebugUtils.AssertEquals(slot, s, "Event was called with wrong slot instance");
+            });
+            Inventory storage = new LimitedInventory(2);
+            slotRestrictionManager.AddRequiredEmptyStorage(slot, storage);
+            DebugUtils.Assert(!slotRestrictionManager.IsSlotLocked(slot), "Slot should be not locked when storage is empty");
+
+            storage.AddItem<TestPart>();
+            DebugUtils.Assert(slotRestrictionManager.IsSlotLocked(slot), "Slot should be locked when storage is not empty");
+            DebugUtils.AssertEquals(1, calls, "Should have triggered the event when inventory became non-empty");
+
+            calls = 0;
+            storage.AddItem<CornItem>();
+            DebugUtils.Assert(slotRestrictionManager.IsSlotLocked(slot), "Slot should still be locked when storage is not empty");
+            DebugUtils.AssertEquals(0, calls, "Should have not triggered the event when inventory remained non-empty");
+
+            calls = 0;
+            storage.Clear();
+            DebugUtils.Assert(!slotRestrictionManager.IsSlotLocked(slot), "Slot should be not locked when storage is empty");
+            DebugUtils.AssertEquals(1, calls, "Should have triggered the event when inventory became empty");
         }
     }
 

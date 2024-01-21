@@ -2,12 +2,15 @@
 using Eco.Core.Serialization.Serializers;
 using Eco.Core.Tests;
 using Eco.Core.Utils;
+using Eco.Gameplay.Items;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
+using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
 using Eco.Shared.View;
 using Parts.Kitchen;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +20,14 @@ namespace Parts.Tests
     [ChatCommandHandler]
     public static class TestParts
     {
+        [Serialized]
+        [Category("Hidden")]
+        public class TestPart : Item, IPart
+        {
+            public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
+
+            string IPart.DisplayName => "Test Part";
+        }
         private class MySubscriptions : ISubscriptions<ThreadSafeSubscriptions>
         {
             public ThreadSafeSubscriptions Subscriptions { get; } = new ThreadSafeSubscriptions();

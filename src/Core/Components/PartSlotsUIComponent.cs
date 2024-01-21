@@ -16,6 +16,7 @@ namespace Parts
     [Serialized]
     [AutogenClass]
     [CreateComponentTabLoc("Slots", true)]
+    [NoIcon]
     [RequireComponent(typeof(PartsContainerComponent))]
     public class PartSlotsUIComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {

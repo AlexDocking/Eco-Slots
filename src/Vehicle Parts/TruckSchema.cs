@@ -29,17 +29,7 @@ namespace Parts.Vehicles
 
             Inventory publicStorage = worldObject.GetComponent<PublicStorageComponent>().Storage;
 
-            RequireEmptyStorageRestriction inventoryRestriction = new RequireEmptyStorageRestriction(publicStorage);
-            slotRestrictionManager.AddRestriction(slots[0], inventoryRestriction);
-
-            publicStorage.OnChanged.Add(_ =>
-            {
-                foreach(Slot slot in slots)
-                {
-                    bool enabled = slot.Inventory.HasRestriction<RequireEmptyStorageRestriction>() ? publicStorage.IsEmpty : true;
-                    slotRestrictionManager.SetSlotEnabled(slot, enabled);
-                }
-            });
+            slotRestrictionManager.AddRequiredEmptyStorage(slots[0], publicStorage);
 
             newContainer.SlotRestrictionManager = slotRestrictionManager;
         }

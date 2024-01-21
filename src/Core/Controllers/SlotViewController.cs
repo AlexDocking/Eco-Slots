@@ -1,15 +1,9 @@
 ﻿using Eco.Core.Controller;
-using Eco.Core.Systems;
 using Eco.Gameplay.Items;
-using Eco.Gameplay.Players;
-using Eco.Gameplay.Systems.NewTooltip;
-using Eco.Gameplay.Systems.TextLinks;
-using Eco.Shared.Items;
 using Eco.Shared.Localization;
 using Eco.Shared.Networking;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
-using System;
 using System.ComponentModel;
 
 namespace Parts
@@ -24,12 +18,12 @@ namespace Parts
         {
             get
             {
-                if (!Enabled)
-                {
-                    return Slot?.Name + (Slot?.PartsContainer?.SlotRestrictionManager?.IsOptional(Slot) ?? true ? " [Optional]" : "")
-                        + "\n<icon name=\"ServerErrors\" type=\"nobg\">" + new LocString("Locked until storage is empty").Style(Text.Styles.ErrorLight);
-                }
-                return Slot?.Name + (Slot?.PartsContainer?.SlotRestrictionManager?.IsOptional(Slot) ?? true ? " [Optional]" : "");
+                LocStringBuilder locStringBuilder = new LocStringBuilder();
+                locStringBuilder.Append(Slot.Name);
+
+                if (SlotRestrictionManager.IsOptional(Slot)) locStringBuilder.JoinWithSpaceIfNeeded(Localizer.DoStr("[Optional]"));
+                if (SlotRestrictionManager.IsSlotLocked(Slot)) locStringBuilder.Append("\n<icon name=\"ServerErrors\" type=\"nobg\">" + new LocString("Locked until storage is empty").Style(Text.Styles.ErrorLight));
+                return locStringBuilder.ToLocString();
             }
         }
 
@@ -45,19 +39,18 @@ namespace Parts
         }
         [SyncToView, Autogen, PropReadOnly, UITypeName("StringTitle")]
         public string ValidTypesDisplay => Slot?.PartsContainer?.SlotRestrictionManager?.DisplayRestriction(Slot).NotTranslated;
-        private bool Enabled => Slot.PartsContainer.SlotRestrictionManager.IsSlotEnabled(Slot);
         public Slot Slot { get; init; }
-
+        private ISlotRestrictionManager SlotRestrictionManager => Slot?.PartsContainer?.SlotRestrictionManager;
         public SlotViewController(Slot slot)
         {
             Slot = slot;
             Slot.NewPartInSlotEvent.Add(() => { this.Changed(nameof(PartName)); this.Changed(nameof(SlotInventory)); });
-            Slot.PartsContainer.SlotRestrictionManager.SlotEnabledChangedEvent.Add(OnSlotEnabledChanged);
+            Slot.PartsContainer.SlotRestrictionManager.SlotLockedChangedEvent.Add(OnSlotEnabledChanged);
         }
         private void OnSlotEnabledChanged(Slot slot)
         {
             if (slot != Slot) return;
-            this.Changed(nameof(Enabled));
+            this.Changed(nameof(Locked));
             this.Changed(nameof(SlotInventory));
             this.Changed(nameof(NameDisplay));
         }

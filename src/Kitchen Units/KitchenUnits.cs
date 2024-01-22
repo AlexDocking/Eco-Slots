@@ -14,7 +14,6 @@ using Eco.Core.Utils;
 using Eco.Shared.Items;
 using Eco.Gameplay.Systems.NewTooltip;
 using Parts.Migration;
-using Eco.Shared.Utils;
 
 namespace Parts.Kitchen
 {
@@ -31,10 +30,7 @@ namespace Parts.Kitchen
         public override LocString DisplayName => Localizer.DoStr("Kitchen Base Cabinet");
 
         public Type RepresentedItemType => typeof(KitchenCupboardItem);
-        public IPartsContainerSchema GetPartsContainerSchema()
-        {
-            return new KitchenBaseCabinetSchema();
-        }
+        public IPartsContainerSchema GetPartsContainerSchema() => new KitchenBaseCabinetSchema(this);
     }
     [Serialized]
     [LocDisplayName("Kitchen Base Cabinet")]

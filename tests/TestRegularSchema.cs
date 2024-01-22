@@ -2,6 +2,7 @@
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
+using Eco.Mods.TechTree;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -188,6 +189,32 @@ namespace Parts.Tests
 
             DebugUtils.AssertEquals(typeof(TestPart2), firstSlot.Part?.GetType(), "Should not have replaced existing part");
             DebugUtils.AssertEquals(typeof(TestPart), secondSlot.Part?.GetType(), "Should have created new part to fill empty slot");
+        }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldMakeRestrictionManagerEnsureEmptyStorages()
+        {
+            Inventory storage = new LimitedInventory(1);
+            RegularSchema schema = new RegularSchema()
+            {
+                SlotDefinitions = new SlotDefinitions()
+                {
+                    new SlotDefinition()
+                    {
+                        StoragesThatMustBeEmpty = new[] { storage },
+                    },
+                }
+            };
+            IPartsContainer partsContainer = PartsContainerFactory.Create();
+            partsContainer.AddPart(new Slot(), new TestPart());
+
+            WorldObject worldObject = new TestWorldObject();
+            partsContainer = schema.Migrate(worldObject, partsContainer);
+            partsContainer.Initialize(worldObject);
+
+            DebugUtils.Assert(!partsContainer.SlotRestrictionManager.IsSlotLocked(partsContainer.Slots[0]), "Slot should not be locked when storage is empty");
+            storage.AddItem(typeof(CornItem));
+            DebugUtils.Assert(partsContainer.SlotRestrictionManager.IsSlotLocked(partsContainer.Slots[0]), "Slot should be locked when storage is not empty");
         }
     }
 }

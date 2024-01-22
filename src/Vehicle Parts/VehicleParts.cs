@@ -49,6 +49,6 @@ namespace Eco.Mods.TechTree
     [RequireComponent(typeof(PartSlotsUIComponent))]
     public partial class TruckObject : IPartsContainerWorldObject
     {
-        public IPartsContainerSchema GetPartsContainerSchema() => new TruckSchema();
+        public IPartsContainerSchema GetPartsContainerSchema() => new TruckSchema(this);
     }
 }

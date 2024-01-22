@@ -24,6 +24,7 @@ namespace Parts
             SetOptional(existingContainer, slotRestrictionManager);
             SetAllowedTypes(existingContainer, slotRestrictionManager);
             SetDefaultParts(existingContainer);
+            SetEmptyStoragesRestriction(existingContainer, slotRestrictionManager);
             return existingContainer;
         }
         private void EnsureCorrectNumberOfSlots(IPartsContainer partsContainer)
@@ -61,7 +62,6 @@ namespace Parts
                 slotRestrictionManager.SetTypeRestriction(slot, slotDefinition.AllowedItemTypes);
             }
         }
-
         private void SetDefaultParts(IPartsContainer partsContainer)
         {
             for (int i = 0; i < partsContainer.Slots.Count; i++)
@@ -75,6 +75,19 @@ namespace Parts
                 }
             }
         }
+        private void SetEmptyStoragesRestriction(IPartsContainer partsContainer, BasicSlotRestrictionManager restrictionManager)
+        {
+            for (int i = 0; i < partsContainer.Slots.Count; i++)
+            {
+                Slot slot = partsContainer.Slots[i];
+                SlotDefinition slotDefinition = SlotDefinitions[i];
+                foreach (Inventory inventory in slotDefinition.StoragesThatMustBeEmpty)
+                {
+                    restrictionManager.AddRequiredEmptyStorage(slot, inventory);
+                }
+            }
+        }
+
     }
     public class SlotDefinitions : IList<SlotDefinition>
     {
@@ -143,6 +156,6 @@ namespace Parts
         public IEnumerable<Type> AllowedItemTypes { get; set; } = Enumerable.Empty<Type>();
         public Func<IPart> MustHavePart { get; set; }
         public IEnumerable<Inventory> StoragesThatMustBeEmpty { get; set; } = Enumerable.Empty<Inventory>();
-        public Func<TestPart> MustHavePartIfEmpty { get; set; }
+        public Func<IPart> MustHavePartIfEmpty { get; set; }
     }
 }

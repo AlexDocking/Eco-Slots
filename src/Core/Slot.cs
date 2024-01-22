@@ -18,8 +18,10 @@ namespace Parts
     public class Slot : IController, INotifyPropertyChanged
     {
         [Serialized, SyncToView] public string Name { get; set; }
-        [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory { get; private set; } = new AuthorizationInventory(1);
-
+        [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory
+        {
+            get => inventory; private set => SetInventory(value);
+        }
         [SyncToView]
         public IPart Part => part;
 
@@ -32,21 +34,33 @@ namespace Parts
         /// Called whenever one of the part's properties e.g. colour is changed
         /// </summary>
         public ThreadSafeAction<Slot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<Slot, IPart, IPartProperty>();
+
+        private WorldObjectHandle? WorldObject
+        {
+            get => worldObject; set
+            {
+                worldObject = value;
+                this.Inventory.SetOwner(value);
+            }
+        }
+        public Slot()
+        {
+            Inventory defaultInventory = new AuthorizationInventory(1, AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
+            SetInventory(defaultInventory);
+        }
+
+        private void SetInventory(Inventory newInventory)
+        {
+            this.inventory?.SetOwner(null);
+            this.inventory?.OnChanged.Remove(OnInventoryChanged);
+            newInventory?.SetOwner(WorldObject);
+            this.inventory = newInventory;
+            newInventory?.OnChanged.AddAndCall(OnInventoryChanged, null);
+        }
         public void Initialize(WorldObject worldObject, IPartsContainer partsContainer)
         {
             PartsContainer = partsContainer;
-            if (this.Inventory is not AuthorizationInventory)
-            {
-                // ensure the inventory type is authorization inventory (migration)
-                var newInventory = new AuthorizationInventory(
-                    this.Inventory.Stacks.Count(),
-                    AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
-                newInventory.ReplaceStacks(this.Inventory.Stacks);
-                this.Inventory = newInventory;
-            }
-            this.Inventory.SetOwner(worldObject);
-            this.Inventory.OnChanged.Add(OnInventoryChanged);
-            OnInventoryChanged(null);
+            this.WorldObject = worldObject;
         }
         public bool SetPart(IPart part)
         {
@@ -69,17 +83,21 @@ namespace Parts
             NewPartInSlotEvent.Invoke();
         }
 
-        public void TryAddPart(IPart part)
+        public Result TryAddPart(IPart part)
         {
-            if (part is Item partItem)
+            if (Part == null && part is Item partItem)
             {
                 Inventory.TryAddItem(partItem);
+                return Result.SetSucceed(Part == part);
             }
+            return Result.FailedNoMessage;
         }
 
         #region IController
         private int id;
         private IPart part;
+        private WorldObjectHandle? worldObject;
+        private Inventory inventory = new AuthorizationInventory(1);
 
         public ref int ControllerID => ref id;
 

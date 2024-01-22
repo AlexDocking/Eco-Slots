@@ -25,6 +25,14 @@ namespace Parts.Tests
 
         string IPart.DisplayName => "Test Part";
     }
+    [Serialized]
+    [Category("Hidden")]
+    public class TestPart2 : Item, IPart
+    {
+        public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
+
+        string IPart.DisplayName => "Test Part 2";
+    }
     [ChatCommandHandler]
     public static class TestParts
     {

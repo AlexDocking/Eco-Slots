@@ -166,6 +166,21 @@ namespace Parts.Tests
             worldObject.AnimatedStates.TryGetValue("Flat Door", out flatDoorEnabled);
             DebugUtils.AssertEquals(true, flatDoorEnabled, "Should tell the model to enable the door when it is installed in the container");
         }
-        
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldTrackPartChangesBeforeInitialization()
+        {
+            Slot slot = new Slot();
+            int calls = 0;
+            slot.NewPartInSlotEvent.Add(() => calls += 1);
+            slot.TryAddPart(new TestPart());
+            DebugUtils.AssertEquals(typeof(TestPart), slot.Part?.GetType(), "Did not set part correctly");
+            DebugUtils.AssertEquals(1, calls, "Did not trigger event exactly once");
+
+            calls = 0;
+            slot.SetPart(null);
+            DebugUtils.AssertEquals(null, slot.Part?.GetType(), "Did not set part correctly");
+            DebugUtils.AssertEquals(1, calls, "Did not trigger event exactly once");
+        }
     }
 }

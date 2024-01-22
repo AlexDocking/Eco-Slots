@@ -2,11 +2,12 @@
 using Eco.Core.Utils;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
+using Eco.Gameplay.Players;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Mods.TechTree;
+using Eco.Shared.Utils;
 using Parts.Kitchen;
 using System;
-using static Parts.Tests.TestParts;
 
 namespace Parts.Tests
 {
@@ -19,20 +20,19 @@ namespace Parts.Tests
         {
             Slot slot = new Slot();
             WorldObject worldObject = new KitchenCupboardObject();
-            PartsContainer partsContainer = new PartsContainer();
+            IPartsContainer partsContainer = PartsContainerFactory.Create();
             slot.Initialize(worldObject, partsContainer);
-
             BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
             slotRestrictionManager.SetTypeRestriction(slot, new Type[] { typeof(KitchenCupboardWorktopItem) });
 
             KitchenBaseCabinetBoxItem box = new KitchenBaseCabinetBoxItem();
-            Result attemptedInvalidResult = slot.Inventory.TryAddItem(box);
+            Result attemptedInvalidResult = slot.TryAddPart(box);
             DebugUtils.Assert(attemptedInvalidResult.Failed, "Slot inventory should not accept wrong item");
             DebugUtils.AssertEquals(null, slot.Part, "Slot part should not have changed");
 
             KitchenCupboardWorktopItem worktop = new KitchenCupboardWorktopItem();
-            Result attemptedValidResult = slot.Inventory.TryAddItem(worktop);
-            DebugUtils.Assert(!attemptedValidResult.Failed, "Slot inventory should accept correct item");
+            Result attemptedValidResult = slot.TryAddPart(worktop);
+            DebugUtils.Assert(attemptedValidResult.Success, "Slot inventory should accept correct item");
             DebugUtils.AssertEquals(worktop, slot.Part, "Slot part should have changed");
         }
         [CITest]

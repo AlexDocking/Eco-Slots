@@ -52,10 +52,7 @@ namespace Parts
                 storage.ReplaceStacks(newStacks);
                 storage.Changed(nameof(Inventory.Stacks));
                 publicStorageComponent.Parent.SetDirty();
-                Log.WriteLine(Localizer.DoStr("Replacing stacks"));
-
             }
-            Log.WriteLine(Localizer.DoStr("Reset public storage to:" + publicStorageComponent?.Storage.Stacks.Count() + "," + BaseMaxWeight));
         }
 
         #region IController

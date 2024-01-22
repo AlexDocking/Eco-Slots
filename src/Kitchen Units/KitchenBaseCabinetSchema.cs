@@ -40,8 +40,8 @@ namespace Parts.Kitchen
             {
                 partsContainer.AddPart(new Slot(), null);
             }
-            IPart preexistingPart0 = slots[0].Inventory.Stacks?.FirstOrDefault()?.Item as IPart;
-            IPart preexistingPart1 = slots[1].Inventory.Stacks?.FirstOrDefault()?.Item as IPart;
+            IPart preexistingPart0 = slots[0].Part;
+            IPart preexistingPart1 = slots[1].Part;
 
             if (preexistingPart0 is not KitchenBaseCabinetBoxItem)
             {

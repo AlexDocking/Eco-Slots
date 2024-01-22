@@ -36,9 +36,6 @@ namespace Parts
             WeightComponent = components?.OfType<WeightComponent>().FirstOrDefault();
             baseWeightLimit = WeightComponent?.MaxWeight ?? -1;
             isNewObject = false;
-            Log.WriteLine(Localizer.DoStr($"Storage modifier:{baseNumSlots}, {baseWeightLimit}, {components?.Count()}"));
-            Log.WriteLine(Localizer.DoStr("parts:" + PartsContainer.Parts.Count()));
-            Log.WriteLine(Localizer.DoStr("Modifers:" + PartsContainer.Parts.OfType<IHasCustomStorageSize>().Count()));
         }
         public override void PostInitialize()
         {

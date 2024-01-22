@@ -17,6 +17,8 @@ namespace Parts
         public LocString DisplayRestriction(Slot slot);
         public bool IsOptional(Slot slot);
         bool IsSlotLocked(Slot slot);
+        IEnumerable<Type> AllowedItemTypes(Slot slot);
+
         public ThreadSafeAction<Slot> SlotLockedChangedEvent { get; }
     }
 
@@ -49,7 +51,7 @@ namespace Parts
         }
         public void AddRequiredEmptyStorage(Slot slot, Inventory mustBeEmpty) => GetOrAddRestrictionsToSlot(slot).AddEmptyRequirementToStorage(mustBeEmpty);
         public void SetTypeRestriction(Slot slot, IEnumerable<Type> validItemTypes) => GetOrAddRestrictionsToSlot(slot).AllowedItemTypes = validItemTypes;
-        private IEnumerable<Type> AllowedItemTypes(Slot slot) => GetOrAddRestrictionsToSlot(slot).AllowedItemTypes;
+        public IEnumerable<Type> AllowedItemTypes(Slot slot) => GetOrAddRestrictionsToSlot(slot).AllowedItemTypes;
         public LocString DisplayRestriction(Slot slot)
         {
             IEnumerable<Item> allowedItems = AllowedItemTypes(slot).Select(type => Item.Get(type)).NonNull();

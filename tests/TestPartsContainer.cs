@@ -13,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using static Parts.Tests.TestPartsContainer;
 
 namespace Parts.Tests
 {
@@ -116,7 +115,7 @@ namespace Parts.Tests
         public class FakePartsContainer : IPartsContainer
         {
             public IReadOnlyList<IPart> Parts => new List<IPart>();
-            public IReadOnlyList<Slot> Slots => new List<Slot>();
+            public IReadOnlyList<Slot> Slots { get; set; } = new List<Slot>();
             public ISlotRestrictionManager SlotRestrictionManager { get; set; }
             public ThreadSafeAction<Slot> NewPartInSlotEvent { get; } = new ThreadSafeAction<Slot>();
             int id;

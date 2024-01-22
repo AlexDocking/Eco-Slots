@@ -1,14 +1,5 @@
 ﻿using Eco.Shared.Localization;
 using Eco.Shared.Utils;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Parts.Tests
 {
     public class DebugUtils

@@ -12,7 +12,7 @@ namespace Parts.Kitchen
         {
             SlotDefinitions = new SlotDefinitions()
             {
-                new SlotDefinition()
+                new RegularSlotDefinition()
                 {
                     Name = "Unit",
                     Optional = false,
@@ -22,7 +22,7 @@ namespace Parts.Kitchen
                     },
                     MustHavePartIfEmpty = () => new KitchenBaseCabinetBoxItem(),
                 },
-                new SlotDefinition()
+                new RegularSlotDefinition()
                 {
                     Name = "Worktop",
                     Optional = false,
@@ -32,7 +32,7 @@ namespace Parts.Kitchen
                     },
                     MustHavePartIfEmpty = () => new KitchenCupboardWorktopItem(),
                 },
-                new SlotDefinition()
+                new RegularSlotDefinition()
                 {
                     Name = "Door",
                     Optional = true,

@@ -40,7 +40,7 @@ namespace Parts
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
                 Slot slot = partsContainer.Slots[i];
-                SlotDefinition slotDefinition = SlotDefinitions[i];
+                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 slot.Name = slotDefinition.Name;
             }
         }
@@ -49,7 +49,7 @@ namespace Parts
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
                 Slot slot = partsContainer.Slots[i];
-                SlotDefinition slotDefinition = SlotDefinitions[i];
+                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 slotRestrictionManager.SetOptional(slot, slotDefinition.Optional);
             }
         }
@@ -58,7 +58,7 @@ namespace Parts
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
                 Slot slot = partsContainer.Slots[i];
-                SlotDefinition slotDefinition = SlotDefinitions[i];
+                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 slotRestrictionManager.SetTypeRestriction(slot, slotDefinition.AllowedItemTypes);
             }
         }
@@ -67,7 +67,7 @@ namespace Parts
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
                 Slot slot = partsContainer.Slots[i];
-                SlotDefinition slotDefinition = SlotDefinitions[i];
+                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 if (slotDefinition.MustHavePart != null) slot.SetPart(slotDefinition.MustHavePart());
                 else if (slot.Part == null && slotDefinition.MustHavePartIfEmpty != null)
                 {
@@ -80,68 +80,67 @@ namespace Parts
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
                 Slot slot = partsContainer.Slots[i];
-                SlotDefinition slotDefinition = SlotDefinitions[i];
+                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 foreach (Inventory inventory in slotDefinition.StoragesThatMustBeEmpty)
                 {
                     restrictionManager.AddRequiredEmptyStorage(slot, inventory);
                 }
             }
         }
-
     }
-    public class SlotDefinitions : IList<SlotDefinition>
+    public class SlotDefinitions : IList<RegularSlotDefinition>
     {
-        public SlotDefinition this[int index] { get => ((IList<SlotDefinition>)List)[index]; set => ((IList<SlotDefinition>)List)[index] = value; }
+        public RegularSlotDefinition this[int index] { get => ((IList<RegularSlotDefinition>)List)[index]; set => ((IList<RegularSlotDefinition>)List)[index] = value; }
 
-        public int Count => ((ICollection<SlotDefinition>)List).Count;
+        public int Count => ((ICollection<RegularSlotDefinition>)List).Count;
 
-        public bool IsReadOnly => ((ICollection<SlotDefinition>)List).IsReadOnly;
+        public bool IsReadOnly => ((ICollection<RegularSlotDefinition>)List).IsReadOnly;
 
-        private List<SlotDefinition> List { get; } = new List<SlotDefinition>();
+        private List<RegularSlotDefinition> List { get; } = new List<RegularSlotDefinition>();
 
-        public void Add(SlotDefinition item)
+        public void Add(RegularSlotDefinition item)
         {
-            ((ICollection<SlotDefinition>)List).Add(item);
+            ((ICollection<RegularSlotDefinition>)List).Add(item);
         }
 
         public void Clear()
         {
-            ((ICollection<SlotDefinition>)List).Clear();
+            ((ICollection<RegularSlotDefinition>)List).Clear();
         }
 
-        public bool Contains(SlotDefinition item)
+        public bool Contains(RegularSlotDefinition item)
         {
-            return ((ICollection<SlotDefinition>)List).Contains(item);
+            return ((ICollection<RegularSlotDefinition>)List).Contains(item);
         }
 
-        public void CopyTo(SlotDefinition[] array, int arrayIndex)
+        public void CopyTo(RegularSlotDefinition[] array, int arrayIndex)
         {
-            ((ICollection<SlotDefinition>)List).CopyTo(array, arrayIndex);
+            ((ICollection<RegularSlotDefinition>)List).CopyTo(array, arrayIndex);
         }
 
-        public IEnumerator<SlotDefinition> GetEnumerator()
+        public IEnumerator<RegularSlotDefinition> GetEnumerator()
         {
-            return ((IEnumerable<SlotDefinition>)List).GetEnumerator();
+            return ((IEnumerable<RegularSlotDefinition>)List).GetEnumerator();
         }
 
-        public int IndexOf(SlotDefinition item)
+        public int IndexOf(RegularSlotDefinition item)
         {
-            return ((IList<SlotDefinition>)List).IndexOf(item);
+            return ((IList<RegularSlotDefinition>)List).IndexOf(item);
         }
 
-        public void Insert(int index, SlotDefinition item)
+        public void Insert(int index, RegularSlotDefinition item)
         {
-            ((IList<SlotDefinition>)List).Insert(index, item);
+            ((IList<RegularSlotDefinition>)List).Insert(index, item);
         }
 
-        public bool Remove(SlotDefinition item)
+        public bool Remove(RegularSlotDefinition item)
         {
-            return ((ICollection<SlotDefinition>)List).Remove(item);
+            return ((ICollection<RegularSlotDefinition>)List).Remove(item);
         }
 
         public void RemoveAt(int index)
         {
-            ((IList<SlotDefinition>)List).RemoveAt(index);
+            ((IList<RegularSlotDefinition>)List).RemoveAt(index);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -149,10 +148,14 @@ namespace Parts
             return ((IEnumerable)List).GetEnumerator();
         }
     }
-    public class SlotDefinition : RegularInventorySlotDefinition
+    public class RegularSlotDefinition : ISlotDefinition, IOptionalSlotDefinition, ILimitedTypesSlotDefinition, IRequireEmptyStorageSlotDefinition
     {
+        public string Name { get; init; }
+        public bool Optional { get; init; }
         public Func<IPart> MustHavePart { get; set; }
         public IEnumerable<Inventory> StoragesThatMustBeEmpty { get; set; } = Enumerable.Empty<Inventory>();
         public Func<IPart> MustHavePartIfEmpty { get; set; }
+        public IEnumerable<Type> AllowedItemTypes { get; init; } = new HashSet<Type>();
+        public bool RequiresEmptyStorageToChangePart => StoragesThatMustBeEmpty?.Any() ?? false;
     }
 }

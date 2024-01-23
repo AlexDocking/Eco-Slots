@@ -22,11 +22,11 @@ namespace Parts.Tests
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         Name = "First Slot"
                     },
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         Name = "Second Slot"
                     }
@@ -52,11 +52,11 @@ namespace Parts.Tests
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         Optional = true
                     },
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         Optional = false
                     }
@@ -82,7 +82,7 @@ namespace Parts.Tests
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         AllowedItemTypes = new[]
                         {
@@ -111,11 +111,11 @@ namespace Parts.Tests
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         MustHavePart = () => new TestPart()
                     },
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                 }
             };
 
@@ -141,11 +141,11 @@ namespace Parts.Tests
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         MustHavePartIfEmpty = () => new TestPart()
                     },
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         MustHavePartIfEmpty = () => new TestPart()
                     }
@@ -176,7 +176,7 @@ namespace Parts.Tests
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new SlotDefinition()
+                    new RegularSlotDefinition()
                     {
                         StoragesThatMustBeEmpty = new[] { storage },
                     },

@@ -22,7 +22,6 @@ namespace Parts
     public interface ISlotDefinition
     {
         string Name { get; }
-        ISlot CreateSlotInstance(WorldObject worldObject, IPartsContainer partsContainer);
     }
     public interface IOptionalSlotDefinition : ISlotDefinition
     {
@@ -34,18 +33,7 @@ namespace Parts
     }
     public interface IRequireEmptyStorageSlotDefinition : ISlotDefinition
     {
-        
-    }
-    public class RegularInventorySlotDefinition : ISlotDefinition, IOptionalSlotDefinition, ILimitedTypesSlotDefinition
-    {
-        public IEnumerable<Type> AllowedItemTypes { get; init; }
-        public string Name { get; init; }
-        public bool Optional { get; init; }
-
-        public ISlot CreateSlotInstance(WorldObject worldObject, IPartsContainer partsContainer)
-        {
-            return new Slot();
-        }
+        bool RequiresEmptyStorageToChangePart { get; }
     }
     public abstract class InventorySlot : Slot
     {

@@ -14,7 +14,7 @@ namespace Parts.Vehicles
         {
             SlotDefinitions = new SlotDefinitions()
             {
-                new SlotDefinition()
+                new RegularSlotDefinition()
                 {
                     Name = "Storage Reinforcement",
                     Optional = true,

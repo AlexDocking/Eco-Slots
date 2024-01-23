@@ -93,7 +93,7 @@ namespace Parts.Tests
             WorldObject worldObject = new TestWorldObject() { Schema = new TestPartsContainerSchema(migratedPartsContainer) };
             
             IPartsContainer existingPartsContainer = new PartsContainer();
-            Slot slot = TestUtility.CreateSlot(new RegularInventorySlotDefinition() { Name = "Box" });
+            Slot slot = TestUtility.CreateSlot(new RegularSlotDefinition() { Name = "Box" });
             KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
             existingPartsContainer.AddPart(slot, part);
 

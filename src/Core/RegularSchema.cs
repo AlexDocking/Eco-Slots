@@ -149,11 +149,8 @@ namespace Parts
             return ((IEnumerable)List).GetEnumerator();
         }
     }
-    public class SlotDefinition
+    public class SlotDefinition : RegularInventorySlotDefinition
     {
-        public string Name { get; set; }
-        public bool Optional { get; set; } = true;
-        public IEnumerable<Type> AllowedItemTypes { get; set; } = Enumerable.Empty<Type>();
         public Func<IPart> MustHavePart { get; set; }
         public IEnumerable<Inventory> StoragesThatMustBeEmpty { get; set; } = Enumerable.Empty<Inventory>();
         public Func<IPart> MustHavePartIfEmpty { get; set; }

@@ -15,7 +15,7 @@ using static Eco.Gameplay.Items.AuthorizationInventory;
 namespace Parts
 {
     [Serialized]
-    public class Slot : IController, INotifyPropertyChanged
+    public class Slot : ISlot, IController, INotifyPropertyChanged
     {
         [Serialized, SyncToView] public string Name { get; set; }
         [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory
@@ -100,6 +100,8 @@ namespace Parts
         private Inventory inventory = new AuthorizationInventory(1);
 
         public ref int ControllerID => ref id;
+
+        public ISlotDefinition GenericDefinition => null;
 
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion

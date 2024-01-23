@@ -17,7 +17,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldUpdatePartWhenInventoryChanges()
         {
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             DebugUtils.AssertEquals(null, slot.Part, "Slot should be empty at creation");
             DebugUtils.AssertEquals(null, slot.Inventory.Stacks.First().Item, "Slot should be empty until given a part");
 
@@ -36,7 +36,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldTriggerPartChangedEventWhenInventoryChanges()
         {
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             WorldObject worldObject = new KitchenCupboardObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -55,7 +55,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldTriggerPartPropertyChangedEventWhenPartPropertyChanges()
         {
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             WorldObject worldObject = new KitchenCupboardObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -78,7 +78,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldSetPartCorrectly()
         {
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             WorldObject worldObject = new TestWorldObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -115,7 +115,7 @@ namespace Parts.Tests
             PartsContainer partsContainer = new PartsContainer();
             Color targetColour = Color.Orange;
             box.ColourData.Colour = targetColour;
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             partsContainer.AddPart(slot, box);
 
 
@@ -149,7 +149,7 @@ namespace Parts.Tests
 
             //create a new parts container with a part which has a colour
             PartsContainer partsContainer = new PartsContainer();
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             partsContainer.AddPart(slot, null);
 
 
@@ -170,7 +170,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldTrackPartChangesBeforeInitialization()
         {
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             int calls = 0;
             slot.NewPartInSlotEvent.Add(() => calls += 1);
             slot.TryAddPart(new TestPart());

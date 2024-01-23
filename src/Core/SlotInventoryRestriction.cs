@@ -100,7 +100,15 @@ namespace Parts
             isLocked = GetRequiredEmptyStorages().Any(inventory => !inventory.IsEmpty);
             if (isLocked != currentlyLocked) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLocked)));
         }
-        public IEnumerable<Type> AllowedItemTypes { get => EditableSpecificItemTypesRestriction.AllowedItemTypes; set { EditableSpecificItemTypesRestriction.AllowedItemTypes.Clear(); EditableSpecificItemTypesRestriction.AllowedItemTypes.AddRange(value); } }
+        public IEnumerable<Type> AllowedItemTypes
+        {
+            get => EditableSpecificItemTypesRestriction.AllowedItemTypes; set
+            {
+                EditableSpecificItemTypesRestriction.AllowedItemTypes.Clear();
+                if (value == null) return;
+                EditableSpecificItemTypesRestriction.AllowedItemTypes.AddRange(value);
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
     }

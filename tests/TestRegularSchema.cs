@@ -18,29 +18,6 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldCreateCorrectNumberOfSlotsInRegularSchema()
         {
-            Inventory storage = new LimitedInventory(1);
-            /*RegularSchema schema = new RegularSchema()
-            {
-                Slots = new SlotDefinitions()
-                {
-                    new SlotDefinition()
-                    {
-                        Name = "First Slot",
-                        AllowedItemTypes = new[]
-                        {
-                            typeof(TestPart)
-                        },
-                        StoragesThatMustBeEmpty = new[] { storage }
-                    },
-                    new SlotDefinition()
-                    {
-                        Name = "Second Slot",
-                        Optional = false,
-                        MustHavePart = () => new TestPart()
-                    }
-                }
-            };*/
-
             RegularSchema schema = new RegularSchema()
             {
                 SlotDefinitions = new SlotDefinitions()
@@ -143,7 +120,7 @@ namespace Parts.Tests
             };
 
             IPartsContainer partsContainer = PartsContainerFactory.Create();
-            partsContainer.AddPart(new Slot(), new TestPart2());
+            partsContainer.AddPart(TestUtility.CreateSlot(), new TestPart2());
 
             WorldObject worldObject = new TestWorldObject();
             partsContainer = schema.Migrate(worldObject, partsContainer);
@@ -175,7 +152,7 @@ namespace Parts.Tests
                 }
             };
             IPartsContainer partsContainer = PartsContainerFactory.Create();
-            partsContainer.AddPart(new Slot(), new TestPart2());
+            partsContainer.AddPart(TestUtility.CreateSlot(), new TestPart2());
 
             WorldObject worldObject = new TestWorldObject();
             partsContainer = schema.Migrate(worldObject, partsContainer);
@@ -206,7 +183,7 @@ namespace Parts.Tests
                 }
             };
             IPartsContainer partsContainer = PartsContainerFactory.Create();
-            partsContainer.AddPart(new Slot(), new TestPart());
+            partsContainer.AddPart(TestUtility.CreateSlot(), new TestPart());
 
             WorldObject worldObject = new TestWorldObject();
             partsContainer = schema.Migrate(worldObject, partsContainer);

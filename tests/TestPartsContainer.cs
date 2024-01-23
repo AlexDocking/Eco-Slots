@@ -24,7 +24,7 @@ namespace Parts.Tests
         public static void ShouldParentSlotToPartsContainer()
         {
             PartsContainer partsContainer = new PartsContainer();
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             WorldObject worldObject = new KitchenCupboardObject();
             partsContainer.AddPart(slot, null);
             partsContainer.Initialize(worldObject);
@@ -36,7 +36,7 @@ namespace Parts.Tests
         public static void ShouldTriggerSlotChangedEvent()
         {
             PartsContainer partsContainer = new PartsContainer();
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             WorldObject worldObject = new KitchenCupboardObject();
             partsContainer.AddPart(slot, null);
             partsContainer.Initialize(worldObject);
@@ -60,7 +60,7 @@ namespace Parts.Tests
         public static void ShouldTriggerGlobalEventWhenSlotChanges()
         {
             PartsContainer partsContainer = new PartsContainer();
-            Slot slot = new Slot();
+            Slot slot = TestUtility.CreateSlot();
             WorldObject worldObject = new KitchenCupboardObject();
             partsContainer.AddPart(slot, null);
             int calls = 0;
@@ -93,7 +93,7 @@ namespace Parts.Tests
             WorldObject worldObject = new TestWorldObject() { Schema = new TestPartsContainerSchema(migratedPartsContainer) };
             
             IPartsContainer existingPartsContainer = new PartsContainer();
-            Slot slot = new Slot() { Name = "Box" };
+            Slot slot = TestUtility.CreateSlot(new RegularInventorySlotDefinition() { Name = "Box" });
             KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
             existingPartsContainer.AddPart(slot, part);
 
@@ -205,7 +205,7 @@ namespace Parts.Tests
         }
         public IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer)
         {
-            subsitute?.AddPart(new Slot(), existingContainer.Parts.FirstOrDefault());
+            subsitute?.AddPart(TestUtility.CreateSlot(), existingContainer.Parts.FirstOrDefault());
             return subsitute;
         }
     }

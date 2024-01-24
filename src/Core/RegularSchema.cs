@@ -147,5 +147,35 @@ namespace Parts
         public Func<IPart> MustHavePartIfEmpty { get; set; }
         public IEnumerable<Type> AllowedItemTypes { get; init; } = new HashSet<Type>();
         public bool RequiresEmptyStorageToChangePart => StoragesThatMustBeEmpty?.Any() ?? false;
+        public bool CanPartEverBeAdded => AllowedItemTypes?.Any() ?? false;
+        public bool CanPartEverBeRemoved => Optional;
+        public IEnumerable<ISlotAddRestriction> RestrictionsToAddPart
+        {
+            get
+            {
+                List<ISlotAddRestriction> restrictions = new List<ISlotAddRestriction>();
+                if (AllowedItemTypes?.Any() ?? false)
+                {
+                    restrictions.Add(new LimitedTypeSlotRestriction(AllowedItemTypes));
+                }
+                if (StoragesThatMustBeEmpty?.Any() ?? false)
+                {
+                    restrictions.Add(new RequiresEmptyStorageSlotRestriction());
+                }
+                return restrictions;
+            }
+        }
+        public IEnumerable<ISlotRemoveRestriction> RestrictionsToRemovePart
+        {
+            get
+            {
+                List<ISlotRemoveRestriction> restrictions = new List<ISlotRemoveRestriction>();
+                if (StoragesThatMustBeEmpty?.Any() ?? false)
+                {
+                    restrictions.Add(new RequiresEmptyStorageSlotRestriction());
+                }
+                return restrictions;
+            }
+        }
     }
 }

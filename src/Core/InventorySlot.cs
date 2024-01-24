@@ -64,16 +64,19 @@ namespace Parts
         public InventorySlot(ISlotDefinition slotDefinition) : this()
         {
             GenericDefinition = slotDefinition;
-            if (slotDefinition is ILimitedTypesSlotDefinition limitedTypesSlotDefinition)
-            {
-                EditableSpecificItemTypesRestriction restriction = new EditableSpecificItemTypesRestriction();
-                restriction.AllowedItemTypes.AddRange(limitedTypesSlotDefinition.AllowedItemTypes);
-                Inventory.AddInvRestriction(restriction);
-            }
-            if (slotDefinition is IOptionalSlotDefinition optionalSlotDefinition && !optionalSlotDefinition.Optional)
+            if (!slotDefinition.CanPartEverBeRemoved)
             {
                 NoRemoveRestriction restriction = new NoRemoveRestriction() { IsEnabled = true };
                 Inventory.AddInvRestriction(restriction);
+            }
+            if (slotDefinition.CanPartEverBeAdded)
+            {
+                if (slotDefinition.RestrictionsToAddPart.FirstOrDefault(restrictionToAdd => restrictionToAdd is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
+                {
+                    EditableSpecificItemTypesRestriction restriction = new EditableSpecificItemTypesRestriction();
+                    restriction.AllowedItemTypes.AddRange(limitedTypeSlotRestriction.AllowedTypes);
+                    Inventory.AddInvRestriction(restriction);
+                }
             }
         }
 

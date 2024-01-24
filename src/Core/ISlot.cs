@@ -1,9 +1,11 @@
 ﻿using Eco.Core.Utils;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
+using Eco.Gameplay.Systems.TextLinks;
 using Eco.Mods.TechTree;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
+using Eco.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +38,32 @@ namespace Parts
     public interface ISlotDefinition
     {
         string Name { get; }
+        bool CanPartEverBeAdded { get; }
+        bool CanPartEverBeRemoved { get; }
+        IEnumerable<ISlotAddRestriction> RestrictionsToAddPart { get; }
+        IEnumerable<ISlotRemoveRestriction> RestrictionsToRemovePart { get; }
+    }
+    public interface ISlotAddRestriction
+    {
+        LocString Describe();
+    }
+    public interface ISlotRemoveRestriction
+    {
+
+    }
+    public class LimitedTypeSlotRestriction : ISlotAddRestriction
+    {
+        public IEnumerable<Type> AllowedTypes { get; } = new List<Type>();
+        public LimitedTypeSlotRestriction(IEnumerable<Type> allowedTypes)
+        {
+            AllowedTypes = allowedTypes.ToList();
+        }
+
+        public LocString Describe() => Localizer.Do($"Part is {AllowedTypes.Select(type => type.UILink()).CommaList()}");
+    }
+    public class RequiresEmptyStorageSlotRestriction : ISlotAddRestriction, ISlotRemoveRestriction
+    {
+        public LocString Describe() => Localizer.DoStr("Storage is empty");
     }
     public interface IOptionalSlotDefinition : ISlotDefinition
     {

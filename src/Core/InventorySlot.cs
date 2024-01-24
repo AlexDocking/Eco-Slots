@@ -122,11 +122,20 @@ namespace Parts
 
             return Result.FailedNoMessage;
         }
-
-        public bool CanAcceptPart(IPart part)
+        public Result TrySetPart(IPart part)
         {
-            if (part is not Item partItem) return false;
-            return Inventory.AcceptsItem(partItem);
+            if (CanSetPart(part)) { SetPart(part); return Result.Succeeded; }
+            return Result.FailedNoMessage;
+        }
+        public bool CanSetPart(IPart part)
+        {
+            return CanAcceptPart(part) && (Part == null || CanRemovePart());
+        }
+        public Result CanAcceptPart(IPart part)
+        {
+            if (part is not Item partItem) return Result.Fail(Localizer.Do($"{part?.GetType().Name ?? "null"} is not a Item"));
+            if (Inventory.AcceptsItem(partItem)) return Result.Succeeded;
+            return Result.FailedNoMessage;
         }
         public bool CanRemovePart()
         {

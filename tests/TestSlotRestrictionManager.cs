@@ -22,7 +22,7 @@ namespace Parts.Tests
             WorldObject worldObject = new KitchenCupboardObject();
             IPartsContainer partsContainer = PartsContainerFactory.Create();
             slot.Initialize(worldObject, partsContainer);
-            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
+            BasicPartsContainerSlotRestrictionManager slotRestrictionManager = new BasicPartsContainerSlotRestrictionManager();
             slotRestrictionManager.SetTypeRestriction(slot, new Type[] { typeof(KitchenCupboardWorktopItem) });
 
             KitchenBaseCabinetBoxItem box = new KitchenBaseCabinetBoxItem();
@@ -44,7 +44,7 @@ namespace Parts.Tests
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
 
-            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
+            BasicPartsContainerSlotRestrictionManager slotRestrictionManager = new BasicPartsContainerSlotRestrictionManager();
             slotRestrictionManager.SetOptional(slot, false);
 
             bool canRemovePart = slot.Inventory.GetMaxPickup(Item.Get<KitchenBaseCabinetBoxItem>(), 1).Val > 0;
@@ -63,7 +63,7 @@ namespace Parts.Tests
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
 
-            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
+            BasicPartsContainerSlotRestrictionManager slotRestrictionManager = new BasicPartsContainerSlotRestrictionManager();
 
             bool acceptsAnyPart = slot.Inventory.GetMaxAccepted(Item.Get<KitchenCupboardWorktopItem>(), 0).Val > 0;
             DebugUtils.Assert(acceptsAnyPart, "Slot should accept any part until set otherwise");
@@ -87,7 +87,7 @@ namespace Parts.Tests
             slot.Initialize(worldObject, partsContainer);
 
             Inventory storage = new LimitedInventory(1);
-            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
+            BasicPartsContainerSlotRestrictionManager slotRestrictionManager = new BasicPartsContainerSlotRestrictionManager();
             slotRestrictionManager.AddRequiredEmptyStorage(slot, storage);
 
             bool acceptsPartWhenStorageIsEmpty = slot.Inventory.GetMaxAccepted(Item.Get<KitchenCupboardWorktopItem>(), 0).Val > 0;
@@ -112,7 +112,7 @@ namespace Parts.Tests
         public static void ShouldTriggerSlotEnabledEvent()
         {
             ISlot slot = TestUtility.CreateSlot();
-            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
+            BasicPartsContainerSlotRestrictionManager slotRestrictionManager = new BasicPartsContainerSlotRestrictionManager();
             int calls = 0;
             slotRestrictionManager.SlotLockedChangedEvent.Add(s =>
             {

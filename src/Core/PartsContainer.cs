@@ -21,7 +21,7 @@ namespace Parts
     {
         IReadOnlyList<IPart> Parts { get; }
         IReadOnlyList<ISlot> Slots { get; }
-        ISlotRestrictionManager SlotRestrictionManager { get; set; }
+        IPartsContainerSlotRestrictionManager SlotRestrictionManager { get; set; }
         ThreadSafeAction<ISlot> NewPartInSlotEvent { get; }
 
         bool TryAddSlot(ISlot slot, IPart part);
@@ -37,7 +37,7 @@ namespace Parts
         [Serialized]
         private ThreadSafeList<ISlot> slots = new ThreadSafeList<ISlot> ();
         public IReadOnlyList<ISlot> Slots => slots.Snapshot.AsReadOnly();
-        public ISlotRestrictionManager SlotRestrictionManager { get; set; }
+        public IPartsContainerSlotRestrictionManager SlotRestrictionManager { get; set; }
 
         /// <summary>
         /// Called when a slot gains, loses or gets a different part

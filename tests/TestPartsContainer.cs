@@ -125,7 +125,7 @@ namespace Parts.Tests
         {
             public IReadOnlyList<IPart> Parts => new List<IPart>();
             public IReadOnlyList<ISlot> Slots { get; set; } = new List<ISlot>();
-            public ISlotRestrictionManager SlotRestrictionManager { get; set; }
+            public IPartsContainerSlotRestrictionManager SlotRestrictionManager { get; set; }
             public ThreadSafeAction<ISlot> NewPartInSlotEvent { get; } = new ThreadSafeAction<ISlot>();
             int id;
             public ref int ControllerID => ref id;

@@ -40,7 +40,7 @@ namespace Parts
         [SyncToView, Autogen, PropReadOnly, UITypeName("StringTitle")]
         public string ValidTypesDisplay => Slot?.PartsContainer?.SlotRestrictionManager?.DisplayRestriction(Slot).NotTranslated;
         public InventorySlot Slot { get; init; }
-        private ISlotRestrictionManager SlotRestrictionManager => Slot?.PartsContainer?.SlotRestrictionManager;
+        private IPartsContainerSlotRestrictionManager SlotRestrictionManager => Slot?.PartsContainer?.SlotRestrictionManager;
         public SlotViewController(InventorySlot slot)
         {
             Slot = slot;

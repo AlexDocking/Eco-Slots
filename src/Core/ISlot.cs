@@ -25,11 +25,13 @@ namespace Parts
         ThreadSafeAction NewPartInSlotEvent { get; }
         ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; }
 
-        bool CanAcceptPart(IPart validPart);
+        Result CanAcceptPart(IPart validPart);
         bool CanRemovePart();
+        bool CanSetPart(IPart part);
         void Initialize(WorldObject worldObject, IPartsContainer partsContainer);
         bool SetPart(IPart part);
         Result TryAddPart(IPart part);
+        Result TrySetPart(IPart part);
     }
     public interface ISlot<T> : ISlot where T : ISlotDefinition
     {

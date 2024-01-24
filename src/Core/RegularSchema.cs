@@ -17,7 +17,7 @@ namespace Parts
 
         public IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer)
         {
-            BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
+            BasicPartsContainerSlotRestrictionManager slotRestrictionManager = new BasicPartsContainerSlotRestrictionManager();
             existingContainer.SlotRestrictionManager = slotRestrictionManager;
             EnsureCorrectNumberOfSlots(existingContainer);
             SetOptional(existingContainer, slotRestrictionManager);
@@ -34,7 +34,7 @@ namespace Parts
                 partsContainer.TryAddSlot(new InventorySlot(SlotDefinitions[i]), null);
             }
         }
-        private void SetOptional(IPartsContainer partsContainer, BasicSlotRestrictionManager slotRestrictionManager)
+        private void SetOptional(IPartsContainer partsContainer, BasicPartsContainerSlotRestrictionManager slotRestrictionManager)
         {
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
@@ -43,7 +43,7 @@ namespace Parts
                 slotRestrictionManager.SetOptional(slot, slotDefinition.Optional);
             }
         }
-        private void SetAllowedTypes(IPartsContainer partsContainer, BasicSlotRestrictionManager slotRestrictionManager)
+        private void SetAllowedTypes(IPartsContainer partsContainer, BasicPartsContainerSlotRestrictionManager slotRestrictionManager)
         {
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
@@ -65,7 +65,7 @@ namespace Parts
                 }
             }
         }
-        private void SetEmptyStoragesRestriction(IPartsContainer partsContainer, BasicSlotRestrictionManager restrictionManager)
+        private void SetEmptyStoragesRestriction(IPartsContainer partsContainer, BasicPartsContainerSlotRestrictionManager restrictionManager)
         {
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {

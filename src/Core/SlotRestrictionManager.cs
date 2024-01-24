@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Parts
 {
-    public interface ISlotRestrictionManager
+    public interface IPartsContainerSlotRestrictionManager
     {
         public LocString DisplayRestriction(ISlot slot);
         public bool IsOptional(ISlot slot);
@@ -22,7 +22,7 @@ namespace Parts
         public ThreadSafeAction<ISlot> SlotLockedChangedEvent { get; }
     }
 
-    public class BasicSlotRestrictionManager : ISlotRestrictionManager
+    public class BasicPartsContainerSlotRestrictionManager : IPartsContainerSlotRestrictionManager
     {
         public IPartsContainer PartsContainer { get; private set; }
         public ThreadSafeAction<ISlot> SlotLockedChangedEvent { get; } = new ThreadSafeAction<ISlot>();

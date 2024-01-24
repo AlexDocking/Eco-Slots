@@ -60,6 +60,7 @@ namespace Parts
         {
             Inventory defaultInventory = new AuthorizationInventory(1, AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
             SetInventory(defaultInventory);
+            SlotRestrictionManager = new InventorySlotRestrictionManager(this, Inventory);
         }
         public InventorySlot(ISlotDefinition slotDefinition) : this()
         {
@@ -113,34 +114,35 @@ namespace Parts
             NewPartInSlotEvent.Invoke();
         }
 
+        private InventorySlotRestrictionManager SlotRestrictionManager { get; set; }
         public Result TryAddPart(IPart part)
         {
-            if (Part == null && part is Item partItem)
-            {
-                return Inventory.TryAddItem(partItem);
-            }
-
-            return Result.FailedNoMessage;
+            if (Part != null) return Result.Fail(Localizer.DoStr("Slot already contains a part"));
+            return TrySetPart(part);
         }
         public Result TrySetPart(IPart part)
         {
-            if (CanSetPart(part)) { SetPart(part); return Result.Succeeded; }
-            return Result.FailedNoMessage;
+            if (!SlotRestrictionManager.CanAcceptPart(part, out List<LocString> failureReasons))
+            {
+                return Result.Fail(failureReasons.NewlineList());
+            }
+            SetPart(part);
+            return Result.Succeeded;
         }
-        public bool CanSetPart(IPart part)
+        public Result CanSetPart(IPart part)
         {
-            return CanAcceptPart(part) && (Part == null || CanRemovePart());
+            if (!SlotRestrictionManager.CanSetPart(part, out var failureReasons)) return Result.Fail(failureReasons.NewlineList());
+            return Result.Succeeded;
         }
         public Result CanAcceptPart(IPart part)
         {
-            if (part is not Item partItem) return Result.Fail(Localizer.Do($"{part?.GetType().Name ?? "null"} is not a Item"));
-            if (Inventory.AcceptsItem(partItem)) return Result.Succeeded;
-            return Result.FailedNoMessage;
+            if (!SlotRestrictionManager.CanAcceptPart(part, out var failureReasons)) return Result.Fail(failureReasons.NewlineList());
+            return Result.Succeeded;
         }
-        public bool CanRemovePart()
+        public Result CanRemovePart()
         {
-            if (Part is not Item partItem) return false;
-            return Inventory.GetMaxPickup(partItem, 1).Val > 0;
+            if (!SlotRestrictionManager.CanRemovePart(part, out var failureReasons)) return Result.Fail(failureReasons.NewlineList());
+            return Result.Succeeded;
         }
 
         #region IController

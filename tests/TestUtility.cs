@@ -1,5 +1,6 @@
 ﻿using Eco.Gameplay.Components.Storage;
 using Eco.Gameplay.Objects;
+using Eco.Shared.IoC;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
@@ -18,13 +19,12 @@ namespace Parts.Tests
         {
             return new InventorySlot();
         }
-        public static ISlot CreateSlot(ISlotDefinition slotDefinition)
+        public static InventorySlot CreateInventorySlot(ISlotDefinition slotDefinition)
         {
-            return new InventorySlot(new RegularSlotDefinition()
-            {
-                Name = slotDefinition.Name
-            });
+            return new InventorySlot(slotDefinition);
         }
+
+        public static ISlot CreateSlot(ISlotDefinition slotDefinition) => CreateInventorySlot(slotDefinition);
     }
     public class TestPartsContainerSchema : IPartsContainerSchema
     {
@@ -63,6 +63,9 @@ namespace Parts.Tests
         /// <param name="worldObject"></param>
         public static void InitializeForTest(this WorldObject worldObject)
         {
+            //In order for inventories to get a WorldObjectHandle the WorldObject must be registered with the WorldObjectManager
+            typeof(WorldObjectManager).GetMethod("InsertWorldObject", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke((WorldObjectManager)ServiceHolder<IWorldObjectManager>.Obj, new object[] { worldObject });
+            
             worldObject.DoInitializationSteps();
             worldObject.FinishInitialize();
             worldObject.Components.ForEach(x => x.PostInitialize());

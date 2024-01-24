@@ -182,5 +182,32 @@ namespace Parts.Tests
             DebugUtils.AssertEquals(null, slot.Part?.GetType(), "Did not set part correctly");
             DebugUtils.AssertEquals(1, calls, "Did not trigger event exactly once");
         }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldSetOwnerWorldObject()
+        {
+            InventorySlot slot = TestUtility.CreateInventorySlot();
+            DebugUtils.Assert(!slot.Inventory.Owner.TryGetObject(out _), "Slot inventory should have no owner at creation");
+            WorldObject parent = new TestWorldObject();
+            parent.InitializeForTest();
+
+            slot.Initialize(parent, PartsContainerFactory.Create());
+            DebugUtils.Assert(slot.Inventory.Owner.TryGetObject(out WorldObject actualParent), "Slot inventory should have an owner after initialization");
+            DebugUtils.AssertEquals(parent, actualParent, "Slot inventory should have the correct owner after initialization");
+        }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldBeAbleToReceivePartTypesBasedOnSlotDefinition()
+        {
+            ISlotDefinition slotDefinition = new RegularSlotDefinition()
+            {
+                AllowedItemTypes = new[] { typeof(TestPart) }
+            };
+            ISlot slot = TestUtility.CreateInventorySlot(slotDefinition);
+            IPart validPart = new TestPart();
+            DebugUtils.Assert(slot.CanAcceptPart(validPart), "Slot should accept part of valid type as set by the slot definition");
+            IPart invalidPart = new TestPart2();
+            DebugUtils.Assert(!slot.CanAcceptPart(invalidPart), "Slot should not accept a part not in the list of allowable types as set in the slot definition");
+        }
     }
 }

@@ -8,6 +8,7 @@ using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using static Eco.Gameplay.Items.AuthorizationInventory;
@@ -35,11 +36,23 @@ namespace Parts
         /// </summary>
         public ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<ISlot, IPart, IPartProperty>();
 
-        private WorldObjectHandle? WorldObject
+        private WorldObject WorldObject
         {
-            get => worldObject; set
+            get
             {
-                worldObject = value;
+                if (worldObjectIsSet)
+                {
+                    return worldObjectHandle;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set
+            {
+                worldObjectHandle = value;
+                worldObjectIsSet = true;
                 this.Inventory.SetOwner(value);
             }
         }
@@ -48,7 +61,14 @@ namespace Parts
             Inventory defaultInventory = new AuthorizationInventory(1, AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
             SetInventory(defaultInventory);
         }
-        public InventorySlot(ISlotDefinition slotDefinition) : this() { GenericDefinition = slotDefinition; }
+        public InventorySlot(ISlotDefinition slotDefinition) : this() { GenericDefinition = slotDefinition;
+            if (slotDefinition is ILimitedTypesSlotDefinition limitedTypesSlotDefinition)
+            {
+                EditableSpecificItemTypesRestriction restriction = new EditableSpecificItemTypesRestriction();
+                restriction.AllowedItemTypes.AddRange(limitedTypesSlotDefinition.AllowedItemTypes);
+                Inventory.AddInvRestriction(restriction);
+            }
+        }
 
         private void SetInventory(Inventory newInventory)
         {
@@ -93,10 +113,17 @@ namespace Parts
             return Result.FailedNoMessage;
         }
 
+        public bool CanAcceptPart(IPart part)
+        {
+            if (part is not Item partItem) return false;
+            return Inventory.AcceptsItem(partItem);
+        }
+
         #region IController
         private int id;
         private IPart part;
-        private WorldObjectHandle? worldObject;
+        private bool worldObjectIsSet = false;
+        private WorldObjectHandle worldObjectHandle = null;
         private Inventory inventory = new AuthorizationInventory(1);
 
         public ref int ControllerID => ref id;

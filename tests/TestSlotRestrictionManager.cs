@@ -18,7 +18,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldOnlyAcceptCorrectItems()
         {
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
             IPartsContainer partsContainer = PartsContainerFactory.Create();
             slot.Initialize(worldObject, partsContainer);
@@ -39,7 +39,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldNotAllowRemovalUnlessOptional()
         {
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -58,7 +58,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldOnlyAllowCertainTypesOfPartsIntoInventory()
         {
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -81,7 +81,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldNotAllowRemovalUnlessStorageIsEmpty()
         {
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -111,7 +111,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldTriggerSlotEnabledEvent()
         {
-            Slot slot = TestUtility.CreateSlot();
+            ISlot slot = TestUtility.CreateSlot();
             BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
             int calls = 0;
             slotRestrictionManager.SlotLockedChangedEvent.Add(s =>

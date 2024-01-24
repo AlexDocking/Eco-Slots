@@ -1,7 +1,9 @@
 ﻿using Eco.Core.Utils;
+using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Mods.TechTree;
 using Eco.Shared.Localization;
+using Eco.Shared.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +12,20 @@ using System.Threading.Tasks;
 
 namespace Parts
 {
+    [Serialized]
     public interface ISlot
     {
+        string Name { get; }
+
         IPart Part { get; }
         ISlotDefinition GenericDefinition { get; }
+        IPartsContainer PartsContainer { get; }
+        ThreadSafeAction NewPartInSlotEvent { get; }
+        ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; }
+
+        void Initialize(WorldObject worldObject, IPartsContainer partsContainer);
+        bool SetPart(IPart part);
+        Result TryAddPart(IPart part);
     }
     public interface ISlot<T> : ISlot where T : ISlotDefinition
     {
@@ -34,11 +46,6 @@ namespace Parts
     public interface IRequireEmptyStorageSlotDefinition : ISlotDefinition
     {
         bool RequiresEmptyStorageToChangePart { get; }
-    }
-    public abstract class InventorySlot : Slot
-    {
-        public abstract ISlotDefinition GenericDefinition { get; }
-
     }
     public class InventorySlot<T> : InventorySlot where T : ISlotDefinition
     {

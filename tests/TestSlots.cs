@@ -17,7 +17,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldUpdatePartWhenInventoryChanges()
         {
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             DebugUtils.AssertEquals(null, slot.Part, "Slot should be empty at creation");
             DebugUtils.AssertEquals(null, slot.Inventory.Stacks.First().Item, "Slot should be empty until given a part");
 
@@ -36,7 +36,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldTriggerPartChangedEventWhenInventoryChanges()
         {
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -55,7 +55,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldTriggerPartPropertyChangedEventWhenPartPropertyChanges()
         {
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -78,7 +78,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldSetPartCorrectly()
         {
-            Slot slot = TestUtility.CreateSlot();
+            ISlot slot = TestUtility.CreateSlot();
             WorldObject worldObject = new TestWorldObject();
             PartsContainer partsContainer = new PartsContainer();
             slot.Initialize(worldObject, partsContainer);
@@ -115,8 +115,8 @@ namespace Parts.Tests
             PartsContainer partsContainer = new PartsContainer();
             Color targetColour = Color.Orange;
             box.ColourData.Colour = targetColour;
-            Slot slot = TestUtility.CreateSlot();
-            partsContainer.AddPart(slot, box);
+            ISlot slot = TestUtility.CreateSlot();
+            partsContainer.TryAddSlot(slot, box);
 
 
             worldObject.Schema = new TestPartsContainerSchema(partsContainer);
@@ -149,8 +149,8 @@ namespace Parts.Tests
 
             //create a new parts container with a part which has a colour
             PartsContainer partsContainer = new PartsContainer();
-            Slot slot = TestUtility.CreateSlot();
-            partsContainer.AddPart(slot, null);
+            ISlot slot = TestUtility.CreateSlot();
+            partsContainer.TryAddSlot(slot, null);
 
 
             worldObject.Schema = new TestPartsContainerSchema(partsContainer);
@@ -170,7 +170,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldTrackPartChangesBeforeInitialization()
         {
-            Slot slot = TestUtility.CreateSlot();
+            ISlot slot = TestUtility.CreateSlot();
             int calls = 0;
             slot.NewPartInSlotEvent.Add(() => calls += 1);
             slot.TryAddPart(new TestPart());

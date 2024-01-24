@@ -27,7 +27,7 @@ namespace Parts
             partsContainer.NewPartInSlotEvent.Add(OnPartPropertyChanged);
             OnModelChanged();
         }
-        private void OnPartPropertyChanged(Slot slot)
+        private void OnPartPropertyChanged(ISlot slot)
         {
             OnModelChanged();
         }

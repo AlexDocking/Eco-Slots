@@ -31,7 +31,7 @@ namespace Parts
             Model?.NewPartInSlotEvent.Add(OnPartChanged);
             OnModelChanged();
         }
-        private void OnPartChanged(Slot slot) => OnModelChanged();
+        private void OnPartChanged(ISlot slot) => OnModelChanged();
         /// <summary>
         /// Update the view with the model name
         /// </summary>

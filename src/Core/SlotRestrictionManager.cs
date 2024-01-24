@@ -14,25 +14,27 @@ namespace Parts
 {
     public interface ISlotRestrictionManager
     {
-        public LocString DisplayRestriction(Slot slot);
-        public bool IsOptional(Slot slot);
-        bool IsSlotLocked(Slot slot);
-        IEnumerable<Type> AllowedItemTypes(Slot slot);
+        public LocString DisplayRestriction(ISlot slot);
+        public bool IsOptional(ISlot slot);
+        bool IsSlotLocked(ISlot slot);
+        IEnumerable<Type> AllowedItemTypes(ISlot slot);
 
-        public ThreadSafeAction<Slot> SlotLockedChangedEvent { get; }
+        public ThreadSafeAction<ISlot> SlotLockedChangedEvent { get; }
     }
 
     public class BasicSlotRestrictionManager : ISlotRestrictionManager
     {
         public IPartsContainer PartsContainer { get; private set; }
-        public ThreadSafeAction<Slot> SlotLockedChangedEvent { get; } = new ThreadSafeAction<Slot>();
-        private IDictionary<Slot, PerSlotRestrictions> SlotRestrictions { get; } = new ThreadSafeDictionary<Slot, PerSlotRestrictions>();
-        private PerSlotRestrictions GetOrAddRestrictionsToSlot(Slot slot)
+        public ThreadSafeAction<ISlot> SlotLockedChangedEvent { get; } = new ThreadSafeAction<ISlot>();
+        private IDictionary<ISlot, PerSlotRestrictions> SlotRestrictions { get; } = new ThreadSafeDictionary<ISlot, PerSlotRestrictions>();
+        private PerSlotRestrictions GetOrAddRestrictionsToSlot(ISlot slot)
         {
+            InventorySlot inventorySlot = slot as InventorySlot;
+            if (inventorySlot == null) throw new ArgumentException(nameof(slot), "Slot is not InventorySlot");
             PerSlotRestrictions perSlotRestrictions;
             if (!SlotRestrictions.TryGetValue(slot, out perSlotRestrictions))
             {
-                perSlotRestrictions = new PerSlotRestrictions(slot);
+                perSlotRestrictions = new PerSlotRestrictions(inventorySlot);
                 if (SlotRestrictions.TryAdd(slot, perSlotRestrictions))
                 {
                     perSlotRestrictions.PropertyChanged += (object _, PropertyChangedEventArgs args) =>
@@ -44,20 +46,20 @@ namespace Parts
             perSlotRestrictions = SlotRestrictions[slot];
             return perSlotRestrictions;
         }
-        public void SetOptional(Slot slot, bool isOptional)
+        public void SetOptional(ISlot slot, bool isOptional)
         {
             PerSlotRestrictions slotRestrictions = GetOrAddRestrictionsToSlot(slot);
             slotRestrictions.IsSlotOptional = isOptional;
         }
-        public void AddRequiredEmptyStorage(Slot slot, Inventory mustBeEmpty) => GetOrAddRestrictionsToSlot(slot).AddEmptyRequirementToStorage(mustBeEmpty);
-        public void SetTypeRestriction(Slot slot, IEnumerable<Type> validItemTypes) => GetOrAddRestrictionsToSlot(slot).AllowedItemTypes = validItemTypes;
-        public IEnumerable<Type> AllowedItemTypes(Slot slot) => GetOrAddRestrictionsToSlot(slot).AllowedItemTypes;
-        public LocString DisplayRestriction(Slot slot)
+        public void AddRequiredEmptyStorage(ISlot slot, Inventory mustBeEmpty) => GetOrAddRestrictionsToSlot(slot).AddEmptyRequirementToStorage(mustBeEmpty);
+        public void SetTypeRestriction(ISlot slot, IEnumerable<Type> validItemTypes) => GetOrAddRestrictionsToSlot(slot).AllowedItemTypes = validItemTypes;
+        public IEnumerable<Type> AllowedItemTypes(ISlot slot) => GetOrAddRestrictionsToSlot(slot).AllowedItemTypes;
+        public LocString DisplayRestriction(ISlot slot)
         {
             IEnumerable<Item> allowedItems = AllowedItemTypes(slot).Select(type => Item.Get(type)).NonNull();
             return Localizer.DoStr("Accepts").AppendSpaceIfSet() + allowedItems.Select(item => item.UILink()).CommaList();
         }
-        public bool IsSlotLocked(Slot slot) => GetOrAddRestrictionsToSlot(slot).IsLocked;
-        public bool IsOptional(Slot slot) => GetOrAddRestrictionsToSlot(slot).IsSlotOptional;
+        public bool IsSlotLocked(ISlot slot) => GetOrAddRestrictionsToSlot(slot).IsLocked;
+        public bool IsOptional(ISlot slot) => GetOrAddRestrictionsToSlot(slot).IsSlotOptional;
     }
 }

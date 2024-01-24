@@ -21,7 +21,7 @@ namespace Parts
     [RequireComponent(typeof(ModelPartColourComponent))]
     public class PartColoursUIComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
-        private IList<(Slot, ColouredPartViewController)> partViews = new ThreadSafeList<(Slot, ColouredPartViewController)>();
+        private IList<(ISlot, ColouredPartViewController)> partViews = new ThreadSafeList<(ISlot, ColouredPartViewController)>();
         private IEnumerable<ColouredPartViewController> Viewers => partViews.SelectNonNull(pair => pair.Item2.Model != null ? pair.Item2 : null);
         [Autogen, SyncToView, HideRoot, HideRootListEntry]
         public ControllerList<ColouredPartViewController> PartsUI { get; private set; }
@@ -44,7 +44,7 @@ namespace Parts
             PartsUI.Callbacks.OnAdd.Add(ResetList);
             PartsUI.Callbacks.OnRemove.Add(ResetList);
         }
-        private void OnPartChanged(Slot slot)
+        private void OnPartChanged(ISlot slot)
         {
             foreach(var (_, viewForSlot) in partViews.Where(s => s.Item1 == slot))
             {
@@ -57,10 +57,10 @@ namespace Parts
         private void BuildViews()
         {
             partViews.Clear();
-            IReadOnlyList<Slot> slots = PartsContainer.Slots;
+            IReadOnlyList<ISlot> slots = PartsContainer.Slots;
             for (int i = 0; i < slots.Count; i++)
             {
-                Slot slot = slots[i];
+                ISlot slot = slots[i];
                 IPart part = slot.Part;
                 IHasModelPartColour partColourComponent = (part as IHasModelPartColour);
                 ColouredPartViewController partView = new ColouredPartViewController();

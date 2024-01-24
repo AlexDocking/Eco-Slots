@@ -3,6 +3,8 @@ using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Mods.TechTree;
+using Eco.Shared.Localization;
+using Eco.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,8 +41,8 @@ namespace Parts.Tests
 
             DebugUtils.AssertEquals(2, partsContainer.Slots.Count(), "Should have made two slots");
 
-            Slot firstSlot = partsContainer.Slots[0];
-            Slot secondSlot = partsContainer.Slots[1];
+            ISlot firstSlot = partsContainer.Slots[0];
+            ISlot secondSlot = partsContainer.Slots[1];
             DebugUtils.AssertEquals("First Slot", firstSlot.Name, "Should have set name on first slot");
             DebugUtils.AssertEquals("Second Slot", secondSlot.Name, "Should have set name on second slot");
         }
@@ -68,8 +70,8 @@ namespace Parts.Tests
             partsContainer.Initialize(worldObject);
 
             if (partsContainer.Slots.Count != 2) return;
-            Slot firstSlot = partsContainer.Slots[0];
-            Slot secondSlot = partsContainer.Slots[1];
+            ISlot firstSlot = partsContainer.Slots[0];
+            ISlot secondSlot = partsContainer.Slots[1];
 
             DebugUtils.Assert(partsContainer.SlotRestrictionManager.IsOptional(firstSlot), "Slot should be optional");
             DebugUtils.Assert(!partsContainer.SlotRestrictionManager.IsOptional(secondSlot), "Slot should not be optional");
@@ -98,7 +100,7 @@ namespace Parts.Tests
 
             if (partsContainer.Slots.Count != 1) return;
 
-            Slot firstSlot = partsContainer.Slots[0];
+            ISlot firstSlot = partsContainer.Slots[0];
             IEnumerable<Type> allowedItemTypes = partsContainer.SlotRestrictionManager.AllowedItemTypes(firstSlot);
             DebugUtils.AssertEquals(1, allowedItemTypes.Count(), "Should only be one allowed item type");
             DebugUtils.AssertEquals(typeof(TestPart), allowedItemTypes.FirstOrDefault(), "Should have set allowed item type");
@@ -120,15 +122,15 @@ namespace Parts.Tests
             };
 
             IPartsContainer partsContainer = PartsContainerFactory.Create();
-            partsContainer.AddPart(TestUtility.CreateSlot(), new TestPart2());
+            partsContainer.TryAddSlot(TestUtility.CreateSlot(), new TestPart2());
 
             WorldObject worldObject = new TestWorldObject();
             partsContainer = schema.Migrate(worldObject, partsContainer);
             partsContainer.Initialize(worldObject);
 
             if (partsContainer.Slots.Count != 2) return;
-            Slot firstSlot = partsContainer.Slots[0];
-            Slot secondSlot = partsContainer.Slots[1];
+            ISlot firstSlot = partsContainer.Slots[0];
+            ISlot secondSlot = partsContainer.Slots[1];
 
             DebugUtils.AssertEquals(typeof(TestPart), firstSlot.Part?.GetType(), "Should have created a new item to fill the slot");
             DebugUtils.AssertEquals(null, secondSlot.Part?.GetType(), "Should not have created a new item to fill the slot");
@@ -152,17 +154,18 @@ namespace Parts.Tests
                 }
             };
             IPartsContainer partsContainer = PartsContainerFactory.Create();
-            partsContainer.AddPart(TestUtility.CreateSlot(), new TestPart2());
+            TestPart2 part = new TestPart2();
+            partsContainer.TryAddSlot(TestUtility.CreateSlot(), part);
+            DebugUtils.AssertEquals(typeof(TestPart2), partsContainer.Slots.FirstOrDefault()?.Part?.GetType(), "Could not set existing part");
 
             WorldObject worldObject = new TestWorldObject();
             partsContainer = schema.Migrate(worldObject, partsContainer);
             partsContainer.Initialize(worldObject);
 
-            DebugUtils.AssertEquals(typeof(TestPart2), partsContainer.Slots.First().Part?.GetType(), "Could not set existing part");
 
             if (partsContainer.Slots.Count != 2) return;
-            Slot firstSlot = partsContainer.Slots[0];
-            Slot secondSlot = partsContainer.Slots[1];
+            ISlot firstSlot = partsContainer.Slots[0];
+            ISlot secondSlot = partsContainer.Slots[1];
 
             DebugUtils.AssertEquals(typeof(TestPart2), firstSlot.Part?.GetType(), "Should not have replaced existing part");
             DebugUtils.AssertEquals(typeof(TestPart), secondSlot.Part?.GetType(), "Should have created new part to fill empty slot");
@@ -183,7 +186,7 @@ namespace Parts.Tests
                 }
             };
             IPartsContainer partsContainer = PartsContainerFactory.Create();
-            partsContainer.AddPart(TestUtility.CreateSlot(), new TestPart());
+            partsContainer.TryAddSlot(TestUtility.CreateSlot(), new TestPart());
 
             WorldObject worldObject = new TestWorldObject();
             partsContainer = schema.Migrate(worldObject, partsContainer);

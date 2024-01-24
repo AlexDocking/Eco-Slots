@@ -15,9 +15,9 @@ using static Eco.Gameplay.Items.AuthorizationInventory;
 namespace Parts
 {
     [Serialized]
-    public class Slot : ISlot, IController, INotifyPropertyChanged
+    public class InventorySlot : ISlot, IController, INotifyPropertyChanged
     {
-        [Serialized, SyncToView] public string Name { get; set; }
+        [Serialized, SyncToView] public string Name { get => GenericDefinition?.Name ?? string.Empty; set { } }
         [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory
         {
             get => inventory; private set => SetInventory(value);
@@ -33,7 +33,7 @@ namespace Parts
         /// <summary>
         /// Called whenever one of the part's properties e.g. colour is changed
         /// </summary>
-        public ThreadSafeAction<Slot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<Slot, IPart, IPartProperty>();
+        public ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<ISlot, IPart, IPartProperty>();
 
         private WorldObjectHandle? WorldObject
         {
@@ -43,11 +43,12 @@ namespace Parts
                 this.Inventory.SetOwner(value);
             }
         }
-        public Slot()
+        public InventorySlot()
         {
             Inventory defaultInventory = new AuthorizationInventory(1, AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
             SetInventory(defaultInventory);
         }
+        public InventorySlot(ISlotDefinition slotDefinition) : this() { GenericDefinition = slotDefinition; }
 
         private void SetInventory(Inventory newInventory)
         {
@@ -79,7 +80,6 @@ namespace Parts
             part?.PartPropertyChangedEvent.Remove(OnPartPropertyChanged);
             part = newPart;
             newPart?.PartPropertyChangedEvent.Add(OnPartPropertyChanged);
-
             NewPartInSlotEvent.Invoke();
         }
 
@@ -87,9 +87,9 @@ namespace Parts
         {
             if (Part == null && part is Item partItem)
             {
-                Inventory.TryAddItem(partItem);
-                return Result.SetSucceed(Part == part);
+                return Inventory.TryAddItem(partItem);
             }
+
             return Result.FailedNoMessage;
         }
 
@@ -101,7 +101,7 @@ namespace Parts
 
         public ref int ControllerID => ref id;
 
-        public ISlotDefinition GenericDefinition => null;
+        public virtual ISlotDefinition GenericDefinition { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion

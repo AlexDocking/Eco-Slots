@@ -97,7 +97,7 @@ namespace Parts
             {
                 Localizer.DoStr("Contains parts:").Style(Text.Styles.Title)
             };
-            foreach (Slot slot in partsContainer.Slots)
+            foreach (ISlot slot in partsContainer.Slots)
             {
                 IPart part = slot.Part;
                 ILinkable linkable = part as ILinkable;

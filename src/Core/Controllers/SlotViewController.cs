@@ -19,7 +19,7 @@ namespace Parts
             get
             {
                 LocStringBuilder locStringBuilder = new LocStringBuilder();
-                locStringBuilder.Append(Slot.Name);
+                locStringBuilder.Append((string)Slot.Name);
 
                 if (SlotRestrictionManager.IsOptional(Slot)) locStringBuilder.JoinWithSpaceIfNeeded(Localizer.DoStr("[Optional]"));
                 if (SlotRestrictionManager.IsSlotLocked(Slot)) locStringBuilder.Append("\n<icon name=\"ServerErrors\" type=\"nobg\">" + new LocString("Locked until storage is empty").Style(Text.Styles.ErrorLight));
@@ -39,15 +39,15 @@ namespace Parts
         }
         [SyncToView, Autogen, PropReadOnly, UITypeName("StringTitle")]
         public string ValidTypesDisplay => Slot?.PartsContainer?.SlotRestrictionManager?.DisplayRestriction(Slot).NotTranslated;
-        public Slot Slot { get; init; }
+        public InventorySlot Slot { get; init; }
         private ISlotRestrictionManager SlotRestrictionManager => Slot?.PartsContainer?.SlotRestrictionManager;
-        public SlotViewController(Slot slot)
+        public SlotViewController(InventorySlot slot)
         {
             Slot = slot;
             Slot.NewPartInSlotEvent.Add(() => { this.Changed(nameof(PartName)); this.Changed(nameof(SlotInventory)); });
             Slot.PartsContainer.SlotRestrictionManager.SlotLockedChangedEvent.Add(OnSlotEnabledChanged);
         }
-        private void OnSlotEnabledChanged(Slot slot)
+        private void OnSlotEnabledChanged(ISlot slot)
         {
             if (slot != Slot) return;
             this.Changed(nameof(Locked));

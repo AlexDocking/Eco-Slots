@@ -19,7 +19,7 @@ namespace Parts
     [RequireComponent(typeof(PartsContainerComponent))]
     public class ModelPartColourComponent : WorldObjectComponent
     {
-        private IDictionary<Slot, ModelColourSetterViewController> partViews = new ThreadSafeDictionary<Slot, ModelColourSetterViewController>();
+        private IDictionary<ISlot, ModelColourSetterViewController> partViews = new ThreadSafeDictionary<ISlot, ModelColourSetterViewController>();
         private IPartsContainer PartsContainer { get; set; }
 
         public override void Initialize()
@@ -33,7 +33,7 @@ namespace Parts
             BuildViews();
             PartsContainer.NewPartInSlotEvent.Add(OnPartChanged);
         }
-        private void OnPartChanged(Slot slot)
+        private void OnPartChanged(ISlot slot)
         {
             if (!partViews.TryGetValue(slot, out ModelColourSetterViewController viewForSlot)) return;
 
@@ -44,10 +44,10 @@ namespace Parts
         private void BuildViews()
         {
             partViews.Clear();
-            IReadOnlyList<Slot> slots = PartsContainer.Slots;
+            IReadOnlyList<ISlot> slots = PartsContainer.Slots;
             for (int i = 0; i < slots.Count; i++)
             {
-                Slot slot = slots[i];
+                ISlot slot = slots[i];
                 IPart part = slot.Part;
                 IHasModelPartColour partColourComponent = part as IHasModelPartColour;
 

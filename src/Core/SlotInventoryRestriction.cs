@@ -72,7 +72,7 @@ namespace Parts
         private NoRemoveRestriction NoRemoveRestriction { get; set; }
         private EditableSpecificItemTypesRestriction EditableSpecificItemTypesRestriction { get; set; }
         private RequireEmptyStoragesRestriction RequireEmptyStoragesRestriction { get; set; }
-        public PerSlotRestrictions(Slot slot)
+        public PerSlotRestrictions(InventorySlot slot)
         {
             NoRemoveRestriction = new NoRemoveRestriction();
             EditableSpecificItemTypesRestriction = new EditableSpecificItemTypesRestriction();

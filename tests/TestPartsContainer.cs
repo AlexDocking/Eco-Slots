@@ -2,8 +2,13 @@
 using Eco.Core.Utils;
 using Eco.Gameplay.Components.Storage;
 using Eco.Gameplay.Items;
+using Eco.Gameplay.Items.Recipes;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
+using Eco.Gameplay.Systems.NewTooltip;
+using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
+using Eco.Mods.TechTree;
+using Eco.Shared.Items;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
@@ -24,9 +29,9 @@ namespace Parts.Tests
         public static void ShouldParentSlotToPartsContainer()
         {
             PartsContainer partsContainer = new PartsContainer();
-            Slot slot = TestUtility.CreateSlot();
+            ISlot slot = TestUtility.CreateSlot();
             WorldObject worldObject = new KitchenCupboardObject();
-            partsContainer.AddPart(slot, null);
+            partsContainer.TryAddSlot(slot, null);
             partsContainer.Initialize(worldObject);
 
             DebugUtils.AssertEquals(partsContainer, slot.PartsContainer, $"Did not set parent slot to {nameof(PartsContainer)} correctly");
@@ -36,13 +41,13 @@ namespace Parts.Tests
         public static void ShouldTriggerSlotChangedEvent()
         {
             PartsContainer partsContainer = new PartsContainer();
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
-            partsContainer.AddPart(slot, null);
+            partsContainer.TryAddSlot(slot, null);
             partsContainer.Initialize(worldObject);
 
             int calls = 0;
-            Action<Slot> callback = s =>
+            Action<ISlot> callback = s =>
                         {
                             calls += 1;
                             DebugUtils.AssertEquals(slot, s);
@@ -60,9 +65,9 @@ namespace Parts.Tests
         public static void ShouldTriggerGlobalEventWhenSlotChanges()
         {
             PartsContainer partsContainer = new PartsContainer();
-            Slot slot = TestUtility.CreateSlot();
+            InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
-            partsContainer.AddPart(slot, null);
+            partsContainer.TryAddSlot(slot, null);
             int calls = 0;
             Action<IPartsContainer> callback = container =>
                         {
@@ -93,9 +98,12 @@ namespace Parts.Tests
             WorldObject worldObject = new TestWorldObject() { Schema = new TestPartsContainerSchema(migratedPartsContainer) };
             
             IPartsContainer existingPartsContainer = new PartsContainer();
-            Slot slot = TestUtility.CreateSlot(new RegularSlotDefinition() { Name = "Box" });
+            ISlot slot = TestUtility.CreateSlot(new RegularSlotDefinition() { Name = "Box" });
             KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
-            existingPartsContainer.AddPart(slot, part);
+            existingPartsContainer.Initialize(worldObject);
+
+            existingPartsContainer.TryAddSlot(slot, part);
+            if (!DebugUtils.AssertEquals(part.GetType(), slot.Part?.GetType(), "Could not set part")) return;
 
             //set up existingPartsContainer as the persistent data
             ItemPersistentData itemPersistentData = new ItemPersistentData();
@@ -104,7 +112,8 @@ namespace Parts.Tests
 
             worldObject.InitializeForTest();
 
-            //should restore existingPartsContainer as persistent data, then migrate its contents to the migratedPartsContainer instance
+            //Should restore existingPartsContainer to the PartsContainerComponent as persistent data,
+            //then migrate its contents to the migratedPartsContainer instance
             PartsContainerComponent partsContainerComponent = worldObject.GetOrCreateComponent<PartsContainerComponent>();
 
 
@@ -115,13 +124,13 @@ namespace Parts.Tests
         public class FakePartsContainer : IPartsContainer
         {
             public IReadOnlyList<IPart> Parts => new List<IPart>();
-            public IReadOnlyList<Slot> Slots { get; set; } = new List<Slot>();
+            public IReadOnlyList<ISlot> Slots { get; set; } = new List<ISlot>();
             public ISlotRestrictionManager SlotRestrictionManager { get; set; }
-            public ThreadSafeAction<Slot> NewPartInSlotEvent { get; } = new ThreadSafeAction<Slot>();
+            public ThreadSafeAction<ISlot> NewPartInSlotEvent { get; } = new ThreadSafeAction<ISlot>();
             int id;
             public ref int ControllerID => ref id;
             public event PropertyChangedEventHandler PropertyChanged;
-            public void AddPart(Slot slot, IPart part) { }
+            public bool TryAddSlot(ISlot slot, IPart part) => true;
 
             /// <summary>
             /// Count the number of times Initialize is called
@@ -132,7 +141,7 @@ namespace Parts.Tests
                 NumberOfInitializeCalls += 1;
             }
 
-            public void RemovePart(Slot slot) { }
+            public void RemovePart(ISlot slot) { }
         }
         
         [CITest]
@@ -180,47 +189,5 @@ namespace Parts.Tests
         public ItemPersistentData persistentData;
         public object PersistentData { get => persistentData; set => persistentData = value as ItemPersistentData; }
     }
-    [Serialized]
-    [LocCategory("Hidden")]
-    [RequireComponent(typeof(PartsContainerComponent))]
-    [RequireComponent(typeof(ModelReplacerComponent))]
-    [RequireComponent(typeof(ModelPartColourComponent))]
-    [RequireComponent(typeof(PublicStorageComponent))]
-    public class TestWorldObject : WorldObject, IPartsContainerWorldObject
-    {
-        public IPartsContainerSchema Schema { get; set; }
-        public IPartsContainerSchema GetPartsContainerSchema() => Schema;
-        protected override void Initialize()
-        {
-            base.Initialize();
-            GetComponent<PublicStorageComponent>().Initialize(1, 10000);
-        }
-    }
-    public class TestPartsContainerSchema : IPartsContainerSchema
-    {
-        private readonly IPartsContainer subsitute;
-        public TestPartsContainerSchema(IPartsContainer subsitute)
-        {
-            this.subsitute = subsitute;
-        }
-        public IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer)
-        {
-            subsitute?.AddPart(TestUtility.CreateSlot(), existingContainer.Parts.FirstOrDefault());
-            return subsitute;
-        }
-    }
-    public static class TestWorldObjectExtensions
-    {
-        /// <summary>
-        /// Initialize a test-only world object without placing it in the world
-        /// </summary>
-        /// <param name="worldObject"></param>
-        public static void InitializeForTest(this WorldObject worldObject)
-        {
-            worldObject.DoInitializationSteps();
-            worldObject.FinishInitialize();
-            worldObject.Components.ForEach(x => x.PostInitialize());
-            typeof(WorldObject).GetProperty(nameof(WorldObject.IsInitialized)).SetValue(worldObject, true);
-        }
-    }
+    
 }

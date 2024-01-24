@@ -20,39 +20,40 @@ namespace Parts
     public interface IPartsContainer : IController, INotifyPropertyChanged
     {
         IReadOnlyList<IPart> Parts { get; }
-        IReadOnlyList<Slot> Slots { get; }
+        IReadOnlyList<ISlot> Slots { get; }
         ISlotRestrictionManager SlotRestrictionManager { get; set; }
-        ThreadSafeAction<Slot> NewPartInSlotEvent { get; }
+        ThreadSafeAction<ISlot> NewPartInSlotEvent { get; }
 
-        void AddPart(Slot slot, IPart part);
+        bool TryAddSlot(ISlot slot, IPart part);
         void Initialize(WorldObject worldObject);
-        void RemovePart(Slot slot);
+        void RemovePart(ISlot slot);
     }
     [Serialized]
     public class PartsContainer : IPartsContainer, IClearRequestHandler
     {
         //not used
         [Serialized] public string Name { get; set; } = "Serialized Name";
-        public IReadOnlyList<IPart> Parts => Slots.SelectNonNull(slot => slot.Inventory.Stacks.FirstOrDefault()?.Item).OfType<IPart>().ToList();
+        public IReadOnlyList<IPart> Parts => Slots.SelectNonNull(slot => slot.Part).ToList();
         [Serialized]
-        private ThreadSafeList<Slot> slots = new ThreadSafeList<Slot> ();
-        public IReadOnlyList<Slot> Slots => slots.Snapshot.AsReadOnly();
+        private ThreadSafeList<ISlot> slots = new ThreadSafeList<ISlot> ();
+        public IReadOnlyList<ISlot> Slots => slots.Snapshot.AsReadOnly();
         public ISlotRestrictionManager SlotRestrictionManager { get; set; }
 
         /// <summary>
         /// Called when a slot gains, loses or gets a different part
         /// </summary>
-        [Notify] public ThreadSafeAction<Slot> NewPartInSlotEvent { get; } = new ThreadSafeAction<Slot> ();
+        [Notify] public ThreadSafeAction<ISlot> NewPartInSlotEvent { get; } = new ThreadSafeAction<ISlot> ();
         /// <summary>
         /// Called when any part changes and property e.g. colour, or when any slot gains, loses or gets a different part
         /// </summary>
         public static ThreadSafeAction<IPartsContainer> PartsContainerChangedEventGlobal { get; } = new ThreadSafeAction<IPartsContainer>();
-        public void AddPart(Slot slot, IPart part)
+        public bool TryAddSlot(ISlot slot, IPart part)
         {
-            slot.TryAddPart(part);
+            if (part != null && !slot.TryAddPart(part)) return false;
             slots.Add(slot);
+            return true;
         }
-        public void RemovePart(Slot slot)
+        public void RemovePart(ISlot slot)
         {
             int index = slots.IndexOf(slot);
             if (index >= 0)
@@ -63,7 +64,7 @@ namespace Parts
 
         public void Initialize(WorldObject worldObject)
         {
-            foreach (Slot slot in Slots)
+            foreach (ISlot slot in Slots)
             {
                 slot.Initialize(worldObject, this);
                 slot.NewPartInSlotEvent.Add(() => OnSlotChangedPart(slot));
@@ -71,7 +72,7 @@ namespace Parts
             }
         }
 
-        private void OnSlotChangedPart(Slot slot)
+        private void OnSlotChangedPart(ISlot slot)
         {
             NewPartInSlotEvent.Invoke(slot);
             PartsContainerChangedEventGlobal.Invoke(this);

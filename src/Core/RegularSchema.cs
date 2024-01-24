@@ -20,7 +20,6 @@ namespace Parts
             BasicSlotRestrictionManager slotRestrictionManager = new BasicSlotRestrictionManager();
             existingContainer.SlotRestrictionManager = slotRestrictionManager;
             EnsureCorrectNumberOfSlots(existingContainer);
-            SetName(existingContainer);
             SetOptional(existingContainer, slotRestrictionManager);
             SetAllowedTypes(existingContainer, slotRestrictionManager);
             SetDefaultParts(existingContainer);
@@ -29,26 +28,17 @@ namespace Parts
         }
         private void EnsureCorrectNumberOfSlots(IPartsContainer partsContainer)
         {
-            IReadOnlyList<Slot> slots = partsContainer.Slots;
-            for (int i = 0; i < SlotDefinitions.Count - slots.Count; i++)
+            IReadOnlyList<ISlot> slots = partsContainer.Slots;
+            for (int i = slots.Count; i < SlotDefinitions.Count; i++)
             {
-                partsContainer.AddPart(new Slot(), null);
-            }
-        }
-        private void SetName(IPartsContainer partsContainer)
-        {
-            for (int i = 0; i < partsContainer.Slots.Count; i++)
-            {
-                Slot slot = partsContainer.Slots[i];
-                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
-                slot.Name = slotDefinition.Name;
+                partsContainer.TryAddSlot(new InventorySlot(SlotDefinitions[i]), null);
             }
         }
         private void SetOptional(IPartsContainer partsContainer, BasicSlotRestrictionManager slotRestrictionManager)
         {
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
-                Slot slot = partsContainer.Slots[i];
+                ISlot slot = partsContainer.Slots[i];
                 RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 slotRestrictionManager.SetOptional(slot, slotDefinition.Optional);
             }
@@ -57,7 +47,7 @@ namespace Parts
         {
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
-                Slot slot = partsContainer.Slots[i];
+                ISlot slot = partsContainer.Slots[i];
                 RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 slotRestrictionManager.SetTypeRestriction(slot, slotDefinition.AllowedItemTypes);
             }
@@ -66,7 +56,7 @@ namespace Parts
         {
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
-                Slot slot = partsContainer.Slots[i];
+                ISlot slot = partsContainer.Slots[i];
                 RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 if (slotDefinition.MustHavePart != null) slot.SetPart(slotDefinition.MustHavePart());
                 else if (slot.Part == null && slotDefinition.MustHavePartIfEmpty != null)
@@ -79,7 +69,7 @@ namespace Parts
         {
             for (int i = 0; i < partsContainer.Slots.Count; i++)
             {
-                Slot slot = partsContainer.Slots[i];
+                ISlot slot = partsContainer.Slots[i];
                 RegularSlotDefinition slotDefinition = SlotDefinitions[i];
                 foreach (Inventory inventory in slotDefinition.StoragesThatMustBeEmpty)
                 {

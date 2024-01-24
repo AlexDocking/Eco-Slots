@@ -24,6 +24,7 @@ namespace Parts
         ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; }
 
         bool CanAcceptPart(IPart validPart);
+        bool CanRemovePart();
         void Initialize(WorldObject worldObject, IPartsContainer partsContainer);
         bool SetPart(IPart part);
         Result TryAddPart(IPart part);

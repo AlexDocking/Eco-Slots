@@ -209,5 +209,28 @@ namespace Parts.Tests
             IPart invalidPart = new TestPart2();
             DebugUtils.Assert(!slot.CanAcceptPart(invalidPart), "Slot should not accept a part not in the list of allowable types as set in the slot definition");
         }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldBeAbleToRemovePartIfOptionalInSlotDefinition()
+        {
+            ISlotDefinition optionalSlotDefinition = new RegularSlotDefinition()
+            {
+                Optional = true
+            };
+            ISlot optionalSlot = TestUtility.CreateInventorySlot(optionalSlotDefinition);
+            IPart part = new TestPart();
+            DebugUtils.Assert(!optionalSlot.CanRemovePart(), "If slot has no part then nothing can be removed");
+            optionalSlot.SetPart(part);
+            DebugUtils.Assert(optionalSlot.CanRemovePart(), "Slot is optional so the part should be allowed to be removed");
+
+            ISlotDefinition nonOptionalSlotDefinition = new RegularSlotDefinition()
+            {
+                Optional = false
+            };
+            ISlot nonOptionalSlot = TestUtility.CreateInventorySlot(nonOptionalSlotDefinition);
+            DebugUtils.Assert(!nonOptionalSlot.CanRemovePart(), "If slot has no part then nothing can be removed");
+            nonOptionalSlot.SetPart(part);
+            DebugUtils.Assert(!nonOptionalSlot.CanRemovePart(), "Slot is not optional so the part should be not allowed to be removed");
+        }
     }
 }

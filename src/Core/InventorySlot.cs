@@ -61,11 +61,18 @@ namespace Parts
             Inventory defaultInventory = new AuthorizationInventory(1, AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
             SetInventory(defaultInventory);
         }
-        public InventorySlot(ISlotDefinition slotDefinition) : this() { GenericDefinition = slotDefinition;
+        public InventorySlot(ISlotDefinition slotDefinition) : this()
+        {
+            GenericDefinition = slotDefinition;
             if (slotDefinition is ILimitedTypesSlotDefinition limitedTypesSlotDefinition)
             {
                 EditableSpecificItemTypesRestriction restriction = new EditableSpecificItemTypesRestriction();
                 restriction.AllowedItemTypes.AddRange(limitedTypesSlotDefinition.AllowedItemTypes);
+                Inventory.AddInvRestriction(restriction);
+            }
+            if (slotDefinition is IOptionalSlotDefinition optionalSlotDefinition && !optionalSlotDefinition.Optional)
+            {
+                NoRemoveRestriction restriction = new NoRemoveRestriction() { IsEnabled = true };
                 Inventory.AddInvRestriction(restriction);
             }
         }
@@ -117,6 +124,11 @@ namespace Parts
         {
             if (part is not Item partItem) return false;
             return Inventory.AcceptsItem(partItem);
+        }
+        public bool CanRemovePart()
+        {
+            if (Part is not Item partItem) return false;
+            return Inventory.GetMaxPickup(partItem, 1).Val > 0;
         }
 
         #region IController

@@ -24,7 +24,7 @@ namespace Parts
         IPartsContainer PartsContainer { get; }
         ThreadSafeAction NewPartInSlotEvent { get; }
         ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; }
-
+        ThreadSafeAction<ISlot> AddableOrRemovableChangedEvent { get; }
         Result CanAcceptPart(IPart validPart);
         Result CanRemovePart();
         Result CanSetPart(IPart part);
@@ -63,7 +63,11 @@ namespace Parts
 
         public LocString Describe() => Localizer.Do($"Part is {AllowedTypes.Select(type => type.UILink()).CommaList()}");
     }
-    public class RequiresEmptyStorageSlotRestriction : ISlotAddRestriction, ISlotRemoveRestriction
+    public class RequiresEmptyPublicStorageToAddSlotRestriction : ISlotAddRestriction
+    {
+        public LocString Describe() => Localizer.DoStr("Storage is empty");
+    }
+    public class RequiresEmptyPublicStorageToRemoveSlotRestriction : ISlotRemoveRestriction
     {
         public LocString Describe() => Localizer.DoStr("Storage is empty");
     }
@@ -78,22 +82,5 @@ namespace Parts
     public interface IRequireEmptyStorageSlotDefinition : ISlotDefinition
     {
         bool RequiresEmptyStorageToChangePart { get; }
-    }
-    public class InventorySlot<T> : InventorySlot where T : ISlotDefinition
-    {
-        public InventorySlot()
-        {
-            Definition = SlotDefinitionRegister.GetDefinitionInstance<T>();
-        }
-        public T Definition { get; }
-        public override ISlotDefinition GenericDefinition => Definition;
-    }
-    public static class SlotDefinitionRegister
-    {
-        public static ISet<ISlotDefinition> SlotDefinitions { get; } = new HashSet<ISlotDefinition>();
-        public static T GetDefinitionInstance<T>() where T : ISlotDefinition
-        {
-            return (T)SlotDefinitions.FirstOrDefault(def => def.GetType() == typeof(T));
-        }
     }
 }

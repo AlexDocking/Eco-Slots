@@ -11,14 +11,8 @@ namespace Parts.Tests
 {
     public static class TestUtility
     {
-        public static ISlot CreateSlot()
-        {
-            return new InventorySlot();
-        }
-        public static InventorySlot CreateInventorySlot()
-        {
-            return new InventorySlot();
-        }
+        public static ISlot CreateSlot() => CreateInventorySlot();
+        public static InventorySlot CreateInventorySlot() => CreateInventorySlot(new RegularSlotDefinition());
         public static InventorySlot CreateInventorySlot(ISlotDefinition slotDefinition)
         {
             return new InventorySlot(slotDefinition);

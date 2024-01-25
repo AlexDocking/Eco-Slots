@@ -1,4 +1,5 @@
 ﻿using Eco.Core.Tests;
+using Eco.Gameplay.Components.Storage;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
@@ -71,10 +72,12 @@ namespace Parts.Tests
 
             if (partsContainer.Slots.Count != 2) return;
             ISlot firstSlot = partsContainer.Slots[0];
+            firstSlot.SetPart(new TestPart());
             ISlot secondSlot = partsContainer.Slots[1];
+            secondSlot.SetPart(new TestPart());
 
-            DebugUtils.Assert(partsContainer.SlotRestrictionManager.IsOptional(firstSlot), "Slot should be optional");
-            DebugUtils.Assert(!partsContainer.SlotRestrictionManager.IsOptional(secondSlot), "Slot should not be optional");
+            DebugUtils.Assert(firstSlot.CanRemovePart(), "Slot should be optional");
+            DebugUtils.Assert(!secondSlot.CanRemovePart(), "Slot should not be optional"); ;
         }
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
@@ -101,7 +104,7 @@ namespace Parts.Tests
             if (partsContainer.Slots.Count != 1) return;
 
             ISlot firstSlot = partsContainer.Slots[0];
-            IEnumerable<Type> allowedItemTypes = partsContainer.SlotRestrictionManager.AllowedItemTypes(firstSlot);
+            IEnumerable<Type> allowedItemTypes = firstSlot.GenericDefinition.RestrictionsToAddPart.OfType<LimitedTypeSlotRestriction>().SelectMany(restriction => restriction.AllowedTypes);
             DebugUtils.AssertEquals(1, allowedItemTypes.Count(), "Should only be one allowed item type");
             DebugUtils.AssertEquals(typeof(TestPart), allowedItemTypes.FirstOrDefault(), "Should have set allowed item type");
         }
@@ -172,16 +175,16 @@ namespace Parts.Tests
         }
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
-        public static void ShouldMakeRestrictionManagerEnsureEmptyStorages()
+        public static void ShouldEnsureEmptyStorages()
         {
-            Inventory storage = new LimitedInventory(1);
             RegularSchema schema = new RegularSchema()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
                     new RegularSlotDefinition()
                     {
-                        StoragesThatMustBeEmpty = new[] { storage },
+                        RequiresEmptyStorageToChangePart = true,
+                        Optional = true
                     },
                 }
             };
@@ -189,12 +192,22 @@ namespace Parts.Tests
             partsContainer.TryAddSlot(TestUtility.CreateSlot(), new TestPart());
 
             WorldObject worldObject = new TestWorldObject();
+            worldObject.InitializeForTest();
+            Inventory storage = worldObject.GetComponent<PublicStorageComponent>().Storage;
+
             partsContainer = schema.Migrate(worldObject, partsContainer);
             partsContainer.Initialize(worldObject);
+            ISlot slot = partsContainer.Slots[0];
 
-            DebugUtils.Assert(!partsContainer.SlotRestrictionManager.IsSlotLocked(partsContainer.Slots[0]), "Slot should not be locked when storage is empty");
+            DebugUtils.Assert(slot.CanAcceptPart(new TestPart()), "Slot should accept a new part when storage is empty");
             storage.AddItem(typeof(CornItem));
-            DebugUtils.Assert(partsContainer.SlotRestrictionManager.IsSlotLocked(partsContainer.Slots[0]), "Slot should be locked when storage is not empty");
+            DebugUtils.Assert(!slot.CanAcceptPart(new TestPart()), "Slot should not accept a new part when storage is not empty");
+
+            storage.RemoveItem(typeof(CornItem));
+            slot.SetPart(new TestPart());
+            DebugUtils.Assert(slot.CanRemovePart(), "Slot should allow the part to be removed when the storage is empty");
+            storage.AddItem(typeof(CornItem));
+            DebugUtils.Assert(!slot.CanRemovePart(), "Slot should not allow the part to be removed when the storage is not empty");
         }
     }
 }

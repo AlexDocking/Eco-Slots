@@ -23,10 +23,7 @@ namespace Parts.Vehicles
                         typeof(StandardTruckBedItem),
                         typeof(BigTruckBedItem),
                     },
-                    StoragesThatMustBeEmpty = new[]
-                    {
-                        worldObject.GetComponent<PublicStorageComponent>().Storage
-                    }
+                    RequiresEmptyStorageToChangePart = true
                 }
             };
         }

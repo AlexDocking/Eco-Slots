@@ -1,19 +1,12 @@
 ﻿using Eco.Core.Tests;
 using Eco.Core.Utils;
-using Eco.Gameplay.Components.Storage;
 using Eco.Gameplay.Items;
-using Eco.Gameplay.Items.Recipes;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
-using Eco.Gameplay.Systems.NewTooltip;
-using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
-using Eco.Mods.TechTree;
-using Eco.Shared.Items;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
 using Parts.Kitchen;
-using Parts.Migration;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -125,7 +118,6 @@ namespace Parts.Tests
         {
             public IReadOnlyList<IPart> Parts => new List<IPart>();
             public IReadOnlyList<ISlot> Slots { get; set; } = new List<ISlot>();
-            public IPartsContainerSlotRestrictionManager SlotRestrictionManager { get; set; }
             public ThreadSafeAction<ISlot> NewPartInSlotEvent { get; } = new ThreadSafeAction<ISlot>();
             int id;
             public ref int ControllerID => ref id;

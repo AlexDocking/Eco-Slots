@@ -1,10 +1,14 @@
 ﻿using Eco.Core.Controller;
+using Eco.Core.Utils;
 using Eco.Gameplay.Items;
+using Eco.Gameplay.Systems.TextLinks;
 using Eco.Shared.Localization;
 using Eco.Shared.Networking;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace Parts
 {
@@ -12,6 +16,7 @@ namespace Parts
     [UITypeName("PropertyPage")]
     public class SlotViewController : IController, INotifyPropertyChanged
     {
+        private readonly string PreventIcon = "\n<icon name=\"ServerErrors\" type=\"nobg\">";
         [SyncToView, Autogen]
         [UITypeName("GeneralHeader")]
         public string NameDisplay
@@ -19,10 +24,21 @@ namespace Parts
             get
             {
                 LocStringBuilder locStringBuilder = new LocStringBuilder();
-                locStringBuilder.Append((string)Slot.Name);
+                locStringBuilder.Append(Slot.Name);
 
-                if (SlotRestrictionManager.IsOptional(Slot)) locStringBuilder.JoinWithSpaceIfNeeded(Localizer.DoStr("[Optional]"));
-                if (SlotRestrictionManager.IsSlotLocked(Slot)) locStringBuilder.Append("\n<icon name=\"ServerErrors\" type=\"nobg\">" + new LocString("Locked until storage is empty").Style(Text.Styles.ErrorLight));
+                if (Slot.GenericDefinition.CanPartEverBeAdded && Slot.GenericDefinition.CanPartEverBeRemoved) locStringBuilder.JoinWithSpaceIfNeeded(Localizer.DoStr("[Optional]"));
+                if (Slot.Part != null && Slot.GenericDefinition.CanPartEverBeRemoved)
+                {
+                    Result canRemovePart = Slot.CanRemovePart();
+                    if (!canRemovePart)
+                    {
+                        locStringBuilder.Append(PreventIcon + Localizer.Do($"Locked until {(canRemovePart.Message.TryGetInlineValue(out string inlinedMessage) ? inlinedMessage : canRemovePart.Message.NotTranslated)}").Style(Text.Styles.ErrorLight));
+                    }
+                }
+                else
+                {
+                    //todo: check whether the slot is currently closed to new parts
+                }
                 return locStringBuilder.ToLocString();
             }
         }
@@ -38,14 +54,25 @@ namespace Parts
             }
         }
         [SyncToView, Autogen, PropReadOnly, UITypeName("StringTitle")]
-        public string ValidTypesDisplay => Slot?.PartsContainer?.SlotRestrictionManager?.DisplayRestriction(Slot).NotTranslated;
+        public string ValidTypesDisplay
+        {
+            get
+            {
+                if (Slot?.GenericDefinition.RestrictionsToAddPart.FirstOrDefault(restriction => restriction is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
+                {
+                    IEnumerable<Item> allowedItems = limitedTypeSlotRestriction.AllowedTypes.Select(type => Item.Get(type)).NonNull();
+                    return Localizer.DoStr("Accepts").AppendSpaceIfSet() + allowedItems.Select(item => item.UILink()).CommaList();
+                }
+                return "";
+            }
+        }
+
         public InventorySlot Slot { get; init; }
-        private IPartsContainerSlotRestrictionManager SlotRestrictionManager => Slot?.PartsContainer?.SlotRestrictionManager;
         public SlotViewController(InventorySlot slot)
         {
             Slot = slot;
             Slot.NewPartInSlotEvent.Add(() => { this.Changed(nameof(PartName)); this.Changed(nameof(SlotInventory)); });
-            Slot.PartsContainer.SlotRestrictionManager.SlotLockedChangedEvent.Add(OnSlotEnabledChanged);
+            //Slot.PartsContainer.SlotRestrictionManager.SlotLockedChangedEvent.Add(OnSlotEnabledChanged);
         }
         private void OnSlotEnabledChanged(ISlot slot)
         {

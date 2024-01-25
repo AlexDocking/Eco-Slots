@@ -1,5 +1,6 @@
 ﻿using Eco.Core.Controller;
 using Eco.Core.Utils;
+using Eco.Gameplay.Components.Storage;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Players;
@@ -35,6 +36,7 @@ namespace Parts
         /// Called whenever one of the part's properties e.g. colour is changed
         /// </summary>
         public ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<ISlot, IPart, IPartProperty>();
+        public ThreadSafeAction<ISlot> AddableOrRemovableChangedEvent { get; } = new ThreadSafeAction<ISlot>();
 
         private WorldObject WorldObject
         {
@@ -54,9 +56,45 @@ namespace Parts
                 worldObjectHandle = value;
                 worldObjectIsSet = true;
                 this.Inventory.SetOwner(value);
+                SetInventoryRequirementsOnWorldObject();
             }
         }
-        public InventorySlot()
+
+        private void SetInventoryRequirementsOnWorldObject()
+        {
+            Log.WriteLine(Localizer.DoStr("SetInventoryRequirementsOnWorldObject"));
+
+            if (WorldObject == null) return;
+            Log.WriteLine(Localizer.DoStr("Has WorldObject"));
+
+            if (GenericDefinition.RestrictionsToAddPart.Any(restrictionToAdd => restrictionToAdd is RequiresEmptyPublicStorageToAddSlotRestriction))
+            {
+                RequireEmptyStorageToAddRestriction restriction = new RequireEmptyStorageToAddRestriction() { IsEnabled = true };
+                Inventory storage = WorldObject.GetComponent<PublicStorageComponent>()?.Storage;
+                if (storage != null)
+                {
+                    Log.WriteLine(Localizer.DoStr("Adding empty add restriction"));
+                    restriction.InventorySet.Inventories.Add(storage);
+                    Inventory.AddInvRestriction(restriction);
+                }
+            }
+            if (GenericDefinition.RestrictionsToRemovePart.Any(restrictionToRemove => restrictionToRemove is RequiresEmptyPublicStorageToRemoveSlotRestriction))
+            {
+                Log.WriteLine(Localizer.DoStr("Try add empty remove restriction"));
+
+                var restriction = new RequireEmptyStorageToRemoveRestriction() { IsEnabled = true };
+                Inventory storage = WorldObject.GetComponent<PublicStorageComponent>()?.Storage;
+                if (storage != null)
+                {
+                    Log.WriteLine(Localizer.DoStr("Adding empty remove restriction"));
+
+                    restriction.InventorySet.Inventories.Add(storage);
+                    Inventory.AddInvRestriction(restriction);
+                }
+            }
+        }
+
+        private InventorySlot()
         {
             Inventory defaultInventory = new AuthorizationInventory(1, AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
             SetInventory(defaultInventory);
@@ -67,6 +105,7 @@ namespace Parts
             GenericDefinition = slotDefinition;
             if (!slotDefinition.CanPartEverBeRemoved)
             {
+                Log.WriteLine(Localizer.DoStr("NoRemoveRestriction"));
                 NoRemoveRestriction restriction = new NoRemoveRestriction() { IsEnabled = true };
                 Inventory.AddInvRestriction(restriction);
             }
@@ -74,7 +113,7 @@ namespace Parts
             {
                 if (slotDefinition.RestrictionsToAddPart.FirstOrDefault(restrictionToAdd => restrictionToAdd is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
                 {
-                    EditableSpecificItemTypesRestriction restriction = new EditableSpecificItemTypesRestriction();
+                    EditableSpecificItemTypesRestriction restriction = new EditableSpecificItemTypesRestriction() { IsEnabled = true };
                     restriction.AllowedItemTypes.AddRange(limitedTypeSlotRestriction.AllowedTypes);
                     Inventory.AddInvRestriction(restriction);
                 }

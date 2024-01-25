@@ -1,9 +1,7 @@
 ﻿using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
-using Eco.Shared.Localization;
 using Eco.Shared.Utils;
 using Parts.Migration;
-using Parts.Tests;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,39 +15,18 @@ namespace Parts
 
         public IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer)
         {
-            BasicPartsContainerSlotRestrictionManager slotRestrictionManager = new BasicPartsContainerSlotRestrictionManager();
-            existingContainer.SlotRestrictionManager = slotRestrictionManager;
-            EnsureCorrectNumberOfSlots(existingContainer);
-            SetOptional(existingContainer, slotRestrictionManager);
-            SetAllowedTypes(existingContainer, slotRestrictionManager);
-            SetDefaultParts(existingContainer);
-            SetEmptyStoragesRestriction(existingContainer, slotRestrictionManager);
-            return existingContainer;
+            IPartsContainer newContainer = PartsContainerFactory.Create();
+            EnsureCorrectNumberOfSlots(existingContainer, newContainer);
+            SetDefaultParts(newContainer);
+            return newContainer;
         }
-        private void EnsureCorrectNumberOfSlots(IPartsContainer partsContainer)
+        private void EnsureCorrectNumberOfSlots(IPartsContainer existingPartsContainer, IPartsContainer newPartsContainer)
         {
-            IReadOnlyList<ISlot> slots = partsContainer.Slots;
-            for (int i = slots.Count; i < SlotDefinitions.Count; i++)
+            IReadOnlyList<ISlot> slots = existingPartsContainer.Slots;
+            for (int i = 0; i < SlotDefinitions.Count; i++)
             {
-                partsContainer.TryAddSlot(new InventorySlot(SlotDefinitions[i]), null);
-            }
-        }
-        private void SetOptional(IPartsContainer partsContainer, BasicPartsContainerSlotRestrictionManager slotRestrictionManager)
-        {
-            for (int i = 0; i < partsContainer.Slots.Count; i++)
-            {
-                ISlot slot = partsContainer.Slots[i];
-                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
-                slotRestrictionManager.SetOptional(slot, slotDefinition.Optional);
-            }
-        }
-        private void SetAllowedTypes(IPartsContainer partsContainer, BasicPartsContainerSlotRestrictionManager slotRestrictionManager)
-        {
-            for (int i = 0; i < partsContainer.Slots.Count; i++)
-            {
-                ISlot slot = partsContainer.Slots[i];
-                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
-                slotRestrictionManager.SetTypeRestriction(slot, slotDefinition.AllowedItemTypes);
+                IPart existingPart = i < slots.Count ? slots[i].Part : null;
+                newPartsContainer.TryAddSlot(new InventorySlot(SlotDefinitions[i]), existingPart);
             }
         }
         private void SetDefaultParts(IPartsContainer partsContainer)
@@ -62,18 +39,6 @@ namespace Parts
                 else if (slot.Part == null && slotDefinition.MustHavePartIfEmpty != null)
                 {
                     slot.SetPart(slotDefinition.MustHavePartIfEmpty());
-                }
-            }
-        }
-        private void SetEmptyStoragesRestriction(IPartsContainer partsContainer, BasicPartsContainerSlotRestrictionManager restrictionManager)
-        {
-            for (int i = 0; i < partsContainer.Slots.Count; i++)
-            {
-                ISlot slot = partsContainer.Slots[i];
-                RegularSlotDefinition slotDefinition = SlotDefinitions[i];
-                foreach (Inventory inventory in slotDefinition.StoragesThatMustBeEmpty)
-                {
-                    restrictionManager.AddRequiredEmptyStorage(slot, inventory);
                 }
             }
         }
@@ -143,10 +108,9 @@ namespace Parts
         public string Name { get; init; }
         public bool Optional { get; init; }
         public Func<IPart> MustHavePart { get; set; }
-        public IEnumerable<Inventory> StoragesThatMustBeEmpty { get; set; } = Enumerable.Empty<Inventory>();
         public Func<IPart> MustHavePartIfEmpty { get; set; }
         public IEnumerable<Type> AllowedItemTypes { get; init; } = new HashSet<Type>();
-        public bool RequiresEmptyStorageToChangePart => StoragesThatMustBeEmpty?.Any() ?? false;
+        public bool RequiresEmptyStorageToChangePart { get; set; } = false;
         public bool CanPartEverBeAdded => AllowedItemTypes?.Any() ?? false;
         public bool CanPartEverBeRemoved => Optional;
         public IEnumerable<ISlotAddRestriction> RestrictionsToAddPart
@@ -158,9 +122,9 @@ namespace Parts
                 {
                     restrictions.Add(new LimitedTypeSlotRestriction(AllowedItemTypes));
                 }
-                if (StoragesThatMustBeEmpty?.Any() ?? false)
+                if (RequiresEmptyStorageToChangePart)
                 {
-                    restrictions.Add(new RequiresEmptyStorageSlotRestriction());
+                    restrictions.Add(new RequiresEmptyPublicStorageToAddSlotRestriction());
                 }
                 return restrictions;
             }
@@ -170,9 +134,9 @@ namespace Parts
             get
             {
                 List<ISlotRemoveRestriction> restrictions = new List<ISlotRemoveRestriction>();
-                if (StoragesThatMustBeEmpty?.Any() ?? false)
+                if (RequiresEmptyStorageToChangePart)
                 {
-                    restrictions.Add(new RequiresEmptyStorageSlotRestriction());
+                    restrictions.Add(new RequiresEmptyPublicStorageToRemoveSlotRestriction());
                 }
                 return restrictions;
             }

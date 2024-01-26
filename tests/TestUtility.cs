@@ -20,10 +20,10 @@ namespace Parts.Tests
 
         public static ISlot CreateSlot(ISlotDefinition slotDefinition) => CreateInventorySlot(slotDefinition);
     }
-    public class TestPartsContainerSchema : IPartsContainerSchema
+    public class TestPartsContainerMigrator : IPartsContainerMigrator
     {
         private readonly IPartsContainer subsitute;
-        public TestPartsContainerSchema(IPartsContainer subsitute)
+        public TestPartsContainerMigrator(IPartsContainer subsitute)
         {
             this.subsitute = subsitute;
         }
@@ -41,8 +41,8 @@ namespace Parts.Tests
     [RequireComponent(typeof(PublicStorageComponent))]
     public class TestWorldObject : WorldObject, IPartsContainerWorldObject
     {
-        public IPartsContainerSchema Schema { get; set; }
-        public IPartsContainerSchema GetPartsContainerSchema() => Schema;
+        public IPartsContainerMigrator Migrator { get; set; }
+        public IPartsContainerMigrator GetPartsContainerMigrator() => Migrator;
         protected override void Initialize()
         {
             base.Initialize();

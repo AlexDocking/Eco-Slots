@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace Parts.Kitchen
 {
-    public class KitchenBaseCabinetSchema : RegularSchema
+    public class KitchenBaseCabinetMigrator: RegularPartsContainerMigrator
     {
-        public KitchenBaseCabinetSchema(WorldObject worldObject) : base()
+        public KitchenBaseCabinetMigrator(WorldObject worldObject) : base()
         {
             SlotDefinitions = new SlotDefinitions()
             {

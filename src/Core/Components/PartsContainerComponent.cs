@@ -32,7 +32,7 @@ namespace Parts
 
         private IPartsContainer partsContainer;
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
-        private IPartsContainerSchema Schema => (Parent as IPartsContainerWorldObject)?.GetPartsContainerSchema();
+        private IPartsContainerMigrator Migrator => (Parent as IPartsContainerWorldObject)?.GetPartsContainerMigrator();
 
         public override void Initialize()
         {
@@ -47,7 +47,7 @@ namespace Parts
         {
             if (initialized) return;
             partsContainer ??= PartsContainerFactory.Create();
-            partsContainer = Schema?.Migrate(Parent, partsContainer) ?? partsContainer;
+            partsContainer = Migrator?.Migrate(Parent, partsContainer) ?? partsContainer;
             partsContainer.Initialize(Parent);
 
             initialized = true;

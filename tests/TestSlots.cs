@@ -1,11 +1,8 @@
 ﻿using Eco.Core.Tests;
-using Eco.Core.Utils;
-using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Shared.Utils;
 using Parts.Kitchen;
-using System;
 using System.Linq;
 
 namespace Parts.Tests
@@ -119,7 +116,7 @@ namespace Parts.Tests
             partsContainer.TryAddSlot(slot, box);
 
 
-            worldObject.Schema = new TestPartsContainerSchema(partsContainer);
+            worldObject.Migrator = new TestPartsContainerMigrator(partsContainer);
 
             worldObject.InitializeForTest();
 
@@ -153,7 +150,7 @@ namespace Parts.Tests
             partsContainer.TryAddSlot(slot, null);
 
 
-            worldObject.Schema = new TestPartsContainerSchema(partsContainer);
+            worldObject.Migrator = new TestPartsContainerMigrator(partsContainer);
 
             worldObject.InitializeForTest();
 

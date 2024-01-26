@@ -15,7 +15,7 @@ using System.Reflection.Metadata;
 
 namespace Parts
 {
-    public class RegularSchema : IPartsContainerSchema
+    public class RegularPartsContainerMigrator : IPartsContainerMigrator
     {
         public SlotDefinitions SlotDefinitions { get; set; }
 

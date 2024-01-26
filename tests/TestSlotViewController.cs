@@ -5,7 +5,6 @@ using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Shared.Localization;
 using Eco.Shared.Utils;
-using System;
 using System.Linq;
 
 namespace Parts.Tests

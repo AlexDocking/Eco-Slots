@@ -8,9 +8,9 @@ using System.Linq;
 
 namespace Parts.Vehicles
 {
-    public class TruckSchema : RegularSchema
+    public class TruckMigrator : RegularPartsContainerMigrator
     {
-        public TruckSchema(WorldObject worldObject) : base()
+        public TruckMigrator(WorldObject worldObject) : base()
         {
             SlotDefinitions = new SlotDefinitions()
             {

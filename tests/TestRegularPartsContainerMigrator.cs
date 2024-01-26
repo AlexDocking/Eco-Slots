@@ -4,24 +4,21 @@ using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Mods.TechTree;
-using Eco.Shared.Localization;
 using Eco.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Parts.Tests
 {
     [ChatCommandHandler]
-    public static class TestRegularSchema
+    public static class TestRegularPartsContainerMigrator
     {
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
-        public static void ShouldCreateCorrectNumberOfSlotsInRegularSchema()
+        public static void ShouldCreateCorrectNumberOfSlotsInRegularMigrator()
         {
-            RegularSchema schema = new RegularSchema()
+            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
@@ -37,7 +34,7 @@ namespace Parts.Tests
             };
             WorldObject worldObject = new TestWorldObject();
 
-            IPartsContainer partsContainer = schema.Migrate(worldObject, PartsContainerFactory.Create());
+            IPartsContainer partsContainer = migrator.Migrate(worldObject, PartsContainerFactory.Create());
             partsContainer.Initialize(worldObject);
 
             DebugUtils.AssertEquals(2, partsContainer.Slots.Count(), "Should have made two slots");
@@ -49,9 +46,9 @@ namespace Parts.Tests
         }
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
-        public static void ShouldSetOptionalPartsInRegularSchema()
+        public static void ShouldSetOptionalPartsInRegularMigrator()
         {
-            RegularSchema schema = new RegularSchema()
+            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
@@ -67,7 +64,7 @@ namespace Parts.Tests
             };
 
             WorldObject worldObject = new TestWorldObject();
-            IPartsContainer partsContainer = schema.Migrate(worldObject, PartsContainerFactory.Create());
+            IPartsContainer partsContainer = migrator.Migrate(worldObject, PartsContainerFactory.Create());
             partsContainer.Initialize(worldObject);
 
             if (partsContainer.Slots.Count != 2) return;
@@ -81,9 +78,9 @@ namespace Parts.Tests
         }
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
-        public static void ShouldSetCorrectTypesInRegularSchema()
+        public static void ShouldSetCorrectTypesInRegularMigrator()
         {
-            RegularSchema schema = new RegularSchema()
+            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
@@ -98,7 +95,7 @@ namespace Parts.Tests
             };
 
             WorldObject worldObject = new TestWorldObject();
-            IPartsContainer partsContainer = schema.Migrate(worldObject, PartsContainerFactory.Create());
+            IPartsContainer partsContainer = migrator.Migrate(worldObject, PartsContainerFactory.Create());
             partsContainer.Initialize(worldObject);
 
             if (partsContainer.Slots.Count != 1) return;
@@ -110,9 +107,9 @@ namespace Parts.Tests
         }
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
-        public static void ShouldReplaceDefaultPartInRegularSchema()
+        public static void ShouldReplaceDefaultPartInRegularMigrator()
         {
-            RegularSchema schema = new RegularSchema()
+            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
@@ -128,7 +125,7 @@ namespace Parts.Tests
             partsContainer.TryAddSlot(TestUtility.CreateSlot(), new TestPart2());
 
             WorldObject worldObject = new TestWorldObject();
-            partsContainer = schema.Migrate(worldObject, partsContainer);
+            partsContainer = migrator.Migrate(worldObject, partsContainer);
             partsContainer.Initialize(worldObject);
 
             if (partsContainer.Slots.Count != 2) return;
@@ -140,9 +137,9 @@ namespace Parts.Tests
         }
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
-        public static void ShouldSetDefaultPartInRegularSchemaOnlyIfEmpty()
+        public static void ShouldSetDefaultPartInRegularMigratorOnlyIfEmpty()
         {
-            RegularSchema schema = new RegularSchema()
+            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
@@ -162,7 +159,7 @@ namespace Parts.Tests
             DebugUtils.AssertEquals(typeof(TestPart2), partsContainer.Slots.FirstOrDefault()?.Part?.GetType(), "Could not set existing part");
 
             WorldObject worldObject = new TestWorldObject();
-            partsContainer = schema.Migrate(worldObject, partsContainer);
+            partsContainer = migrator.Migrate(worldObject, partsContainer);
             partsContainer.Initialize(worldObject);
 
 
@@ -177,7 +174,7 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldEnsureEmptyStorages()
         {
-            RegularSchema schema = new RegularSchema()
+            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
@@ -195,7 +192,7 @@ namespace Parts.Tests
             worldObject.InitializeForTest();
             Inventory storage = worldObject.GetComponent<PublicStorageComponent>().Storage;
 
-            partsContainer = schema.Migrate(worldObject, partsContainer);
+            partsContainer = migrator.Migrate(worldObject, partsContainer);
             partsContainer.Initialize(worldObject);
             ISlot slot = partsContainer.Slots[0];
 

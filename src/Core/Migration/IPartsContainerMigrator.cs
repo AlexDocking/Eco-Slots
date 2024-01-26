@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Parts.Migration
 {
-    public interface IPartsContainerSchema
+    public interface IPartsContainerMigrator
     {
         IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer);
     }

@@ -84,11 +84,11 @@ namespace Parts.Tests
         
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
-        public static void ShouldUseSchemaToMigratePartsContainer()
+        public static void ShouldUseMigratorToMigratePartsContainer()
         {
             PartsContainer migratedPartsContainer = new PartsContainer();
 
-            WorldObject worldObject = new TestWorldObject() { Schema = new TestPartsContainerSchema(migratedPartsContainer) };
+            WorldObject worldObject = new TestWorldObject() { Migrator = new TestPartsContainerMigrator(migratedPartsContainer) };
             
             IPartsContainer existingPartsContainer = new PartsContainer();
             ISlot slot = TestUtility.CreateSlot(new RegularSlotDefinition() { Name = "Box" });
@@ -110,8 +110,8 @@ namespace Parts.Tests
             PartsContainerComponent partsContainerComponent = worldObject.GetOrCreateComponent<PartsContainerComponent>();
 
 
-            DebugUtils.AssertEquals(migratedPartsContainer, partsContainerComponent?.PartsContainer, "Should have used migration schema to set the new parts container");
-            DebugUtils.AssertEquals(part, partsContainerComponent?.PartsContainer?.Parts?.FirstOrDefault(), "Should have passed in existing parts container to migration schema");
+            DebugUtils.AssertEquals(migratedPartsContainer, partsContainerComponent?.PartsContainer, "Should have used migrator to set the new parts container");
+            DebugUtils.AssertEquals(part, partsContainerComponent?.PartsContainer?.Parts?.FirstOrDefault(), "Should have passed in existing parts container to migrator");
         }
         [Serialized]
         public class FakePartsContainer : IPartsContainer
@@ -142,7 +142,7 @@ namespace Parts.Tests
         {
             FakePartsContainer fakePartsContainer = new FakePartsContainer();
 
-            WorldObject worldObject = new TestWorldObject() { Schema = new TestPartsContainerSchema(null) };
+            WorldObject worldObject = new TestWorldObject() { Migrator = new TestPartsContainerMigrator(null) };
             //set up fakePartsContainer as the persistent data
             ItemPersistentData itemPersistentData = new ItemPersistentData();
             itemPersistentData.Entries.Add(typeof(PartsContainerComponent), fakePartsContainer);

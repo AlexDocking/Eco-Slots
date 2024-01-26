@@ -4,6 +4,6 @@ namespace Parts
 {
     public interface IPartsContainerWorldObject
     {
-        public IPartsContainerSchema GetPartsContainerSchema();
+        public IPartsContainerMigrator GetPartsContainerMigrator();
     }
 }

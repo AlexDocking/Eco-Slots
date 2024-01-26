@@ -30,7 +30,7 @@ namespace Parts.Kitchen
         public override LocString DisplayName => Localizer.DoStr("Kitchen Base Cabinet");
 
         public Type RepresentedItemType => typeof(KitchenCupboardItem);
-        public IPartsContainerSchema GetPartsContainerSchema() => new KitchenBaseCabinetSchema(this);
+        public IPartsContainerMigrator GetPartsContainerMigrator() => new KitchenBaseCabinetMigrator(this);
     }
     [Serialized]
     [LocDisplayName("Kitchen Base Cabinet")]

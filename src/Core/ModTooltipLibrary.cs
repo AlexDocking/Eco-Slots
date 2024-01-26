@@ -59,6 +59,13 @@ namespace Parts
         {
             return Localizer.Do($"Increases the number of storage slots by {Text.Info(customStorageSize.NumberOfAdditionalSlots)}").Style(Text.Styles.Info);
         }
+        [NewTooltip(CacheAs.Instance, 180, overrideType: typeof(IPartsContainerWorldObject))]
+        public static LocString PartsContainerWorldObjectItemTooltip(this IPartsContainerWorldObject item)
+        {
+            if (item.GetPartsContainerMigrator() is not RegularPartsContainerMigrator migrator) return LocString.Empty;
+            IPartsContainerSchema partsContainerSchema = new PartsContainerSchema(migrator.SlotDefinitions);
+            return partsContainerSchema.Tooltip();
+        }
 
         /// <summary>
         /// Generates tooltip for ModelPartColouring on an item

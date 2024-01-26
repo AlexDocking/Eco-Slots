@@ -4,14 +4,12 @@ using Eco.Gameplay.Systems.TextLinks;
 using Eco.Shared.Localization;
 using Eco.Shared.Localization.ConstLocs;
 using Eco.Shared.Utils;
-using Eco.Simulation.WorldLayers.Pullers;
 using Parts.Migration;
 using Parts.WIP;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 
 namespace Parts
 {
@@ -21,26 +19,20 @@ namespace Parts
 
         public IPartsContainer Migrate(WorldObject worldObject, IPartsContainer existingContainer)
         {
-            IPartsContainer newContainer = PartsContainerFactory.Create();
-            EnsureCorrectNumberOfSlots(existingContainer, newContainer);
-            SetDefaultParts(newContainer);
+            IPartsContainer newContainer = PartsContainerFactory.Create(new PartsContainerSchema(SlotDefinitions));
+            SetParts(newContainer, existingContainer);
             return newContainer;
         }
-        private void EnsureCorrectNumberOfSlots(IPartsContainer existingPartsContainer, IPartsContainer newPartsContainer)
+        private void SetParts(IPartsContainer newPartsContainer, IPartsContainer existingPartsContainer)
         {
-            IReadOnlyList<ISlot> slots = existingPartsContainer.Slots;
-            for (int i = 0; i < SlotDefinitions.Count; i++)
+            for (int i = 0; i < newPartsContainer.Slots.Count; i++)
             {
-                IPart existingPart = i < slots.Count ? slots[i].Part : null;
-                newPartsContainer.TryAddSlot(new InventorySlot(SlotDefinitions[i]), existingPart);
-            }
-        }
-        private void SetDefaultParts(IPartsContainer partsContainer)
-        {
-            for (int i = 0; i < partsContainer.Slots.Count; i++)
-            {
-                ISlot slot = partsContainer.Slots[i];
+                ISlot slot = newPartsContainer.Slots[i];
                 RegularSlotDefinition slotDefinition = SlotDefinitions[i];
+                if (existingPartsContainer.Slots.Count > i)
+                {
+                    slot.SetPart(existingPartsContainer.Slots[i].Part);
+                }
                 if (slotDefinition.MustHavePart != null) slot.SetPart(slotDefinition.MustHavePart());
                 else if (slot.Part == null && slotDefinition.MustHavePartIfEmpty != null)
                 {

@@ -88,4 +88,16 @@ namespace Parts
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
     }
+    public static class PartsContainerExtensions
+    {
+        public static IPartsContainerSchema GenerateSchema(this IPartsContainer partsContainer)
+        {
+            List<ISlotDefinition> slotDefinitions = new List<ISlotDefinition>();
+            foreach(ISlot slot in partsContainer.Slots)
+            {
+                slotDefinitions.Add(slot.GenericDefinition);
+            }
+            return new PartsContainerSchema(slotDefinitions);
+        }
+    }
 }

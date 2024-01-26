@@ -1,9 +1,5 @@
-﻿using Eco.Shared.Localization;
-using Eco.Shared.Utils;
-
-namespace Parts
+﻿namespace Parts
 {
-
     public static class PartsContainerFactory
     {
         public static IPartsContainerFactory Factory { get; set; } = new DefaultPartsContainerFactory();
@@ -11,6 +7,15 @@ namespace Parts
         {
             IPartsContainer partsContainer = Factory.Create();
 
+            return partsContainer;
+        }
+        public static IPartsContainer Create(IPartsContainerSchema schema)
+        {
+            IPartsContainer partsContainer = Factory.Create();
+            for (int i = 0; i < schema.SlotSchemas.Count; i++)
+            {
+                partsContainer.TryAddSlot(new InventorySlot(schema.SlotSchemas[i]), null);
+            }
             return partsContainer;
         }
     }

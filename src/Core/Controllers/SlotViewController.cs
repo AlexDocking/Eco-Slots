@@ -37,7 +37,11 @@ namespace Parts
                 }
                 else
                 {
-                    //todo: check whether the slot is currently closed to new parts
+                    Result canAddPart = Slot.CanAcceptAnyPart();
+                    if (!canAddPart)
+                    {
+                        locStringBuilder.Append(PreventIcon + Localizer.Do($"Locked until {(canAddPart.Message.TryGetInlineValue(out string inlinedMessage) ? inlinedMessage : canAddPart.Message.NotTranslated)}").Style(Text.Styles.ErrorLight));
+                    }
                 }
                 return locStringBuilder.ToLocString();
             }

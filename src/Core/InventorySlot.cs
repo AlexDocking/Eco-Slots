@@ -178,6 +178,7 @@ namespace Parts
             if (!SlotRestrictionManager.CanAcceptPart(part, out var failureReasons)) return Result.Fail(failureReasons.NewlineList());
             return Result.Succeeded;
         }
+        public Result CanAcceptAnyPart() => SlotRestrictionManager.CanAcceptAnyPart();
         public Result CanRemovePart()
         {
             if (!SlotRestrictionManager.CanRemovePart(part, out var failureReasons)) return Result.Fail(failureReasons.NewlineList());

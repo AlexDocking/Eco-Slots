@@ -1,6 +1,8 @@
-﻿using Eco.Gameplay.Items;
+﻿using Eco.Core.Utils;
+using Eco.Gameplay.Items;
 using Eco.Shared.Localization;
 using Eco.Shared.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -69,6 +71,13 @@ namespace Parts
             Log.WriteLine(Localizer.DoStr("can remove"));
 
             return true;
+        }
+
+        public Result CanAcceptAnyPart()
+        {
+            var violatedRequireEmptyStorageRestriction = Inventory.Restrictions.FirstOrDefault(restriction => restriction is RequireEmptyStorageToAddRestriction requireEmptyStorageToAddRestriction && requireEmptyStorageToAddRestriction.MaxAccepted(null, 0) == 0);
+            if (violatedRequireEmptyStorageRestriction == null) return Result.Succeeded;
+            return Result.Fail(violatedRequireEmptyStorageRestriction.Message);
         }
     }
 }

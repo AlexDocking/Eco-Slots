@@ -8,14 +8,14 @@ namespace Parts
 {
     public class PartsContainerSchema : IPartsContainerSchema
     {
-        private List<ISlotDefinition> slotSchema = new List<ISlotDefinition>();
-        public IReadOnlyList<ISlotDefinition> SlotSchemas => slotSchema;
+        private List<ISlotDefinition> slotSchemas = new List<ISlotDefinition>();
+        public IReadOnlyList<ISlotDefinition> SlotSchemas => slotSchemas;
         private PartsContainerSchema() { }
-        public PartsContainerSchema(IEnumerable<ISlotDefinition> slotSchema) => this.slotSchema = slotSchema.ToList();
+        public PartsContainerSchema(IEnumerable<ISlotDefinition> slotSchemas) => this.slotSchemas = slotSchemas.ToList();
         public LocString Tooltip()
         {
             List<LocString> slotTooltips = new List<LocString>();
-            foreach(ISlotDefinition slot in slotSchema)
+            foreach(ISlotDefinition slot in slotSchemas)
             {
                 slotTooltips.Add(slot.Tooltip());
             }

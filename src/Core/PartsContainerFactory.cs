@@ -14,7 +14,7 @@
             IPartsContainer partsContainer = Factory.Create();
             for (int i = 0; i < schema.SlotSchemas.Count; i++)
             {
-                partsContainer.TryAddSlot(new InventorySlot(schema.SlotSchemas[i]), null);
+                partsContainer.TryAddSlot(schema.SlotSchemas[i].MakeSlotFromDefinition(), null);
             }
             return partsContainer;
         }

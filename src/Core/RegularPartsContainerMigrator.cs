@@ -161,5 +161,9 @@ namespace Parts
 
             return tooltipBuilder.ToLocString();
         }
+        public ISlot MakeSlotFromDefinition()
+        {
+            return new InventorySlot(this);
+        }
     }
 }

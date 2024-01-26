@@ -53,5 +53,48 @@ namespace Parts.Tests
             LimitedTypeSlotRestriction slotRestriction = slotDefinition.RestrictionsToAddPart.FirstOrDefault(restriction => restriction is LimitedTypeSlotRestriction) as LimitedTypeSlotRestriction;
             DebugUtils.AssertEquals(slotRestriction.Describe(), result.Message, "Error message did not match expected");
         }*/
+
+        private class MockSlot : ISlot
+        {
+            public string Name { get; }
+            public IPart Part { get; }
+            public ISlotDefinition GenericDefinition { get; }
+            public IPartsContainer PartsContainer { get; }
+            public ThreadSafeAction NewPartInSlotEvent { get; } = new ThreadSafeAction();
+            public ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<ISlot, IPart, IPartProperty>();
+            public ThreadSafeAction<ISlot> AddableOrRemovableChangedEvent { get; } = new ThreadSafeAction<ISlot>();
+            public Result CanAcceptPart(IPart validPart) => default;
+            public Result CanRemovePart() => default;
+            public Result CanSetPart(IPart part) => default;
+            public void Initialize(WorldObject worldObject, IPartsContainer partsContainer) { }
+            public bool SetPart(IPart part) => default;
+            public Result TryAddPart(IPart part) => default;
+            public Result TrySetPart(IPart part) => default;
+        }
+        private class FakeSlotViewCreator : SlotViewCreator
+        {
+            public override object CreateView(ISlot slot)
+            {
+                object view = base.CreateView(slot);
+                if (view != null) return view;
+                switch (slot)
+                {
+                    case MockSlot: return "MockSlotView";
+                    default: return null;
+                }
+            }
+        }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldUseCorrectViewTypeForSlot()
+        {
+            PartSlotsUIComponent uiComponent = new PartSlotsUIComponent();
+            uiComponent.ViewCreator = new FakeSlotViewCreator();
+
+            uiComponent.CreateViews(new PartsContainer(new ISlot[] { new MockSlot() }));
+            var views = uiComponent.Views;
+            DebugUtils.AssertEquals(1, views.Count(), "Should only be one view for the one slot");
+            DebugUtils.AssertEquals("MockSlotView", views.FirstOrDefault(), "Should have used view creator to return the right view object for the slot");
+        }
     }
 }

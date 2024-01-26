@@ -20,44 +20,46 @@ namespace Parts
     [RequireComponent(typeof(PartsContainerComponent))]
     public class PartSlotsUIComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
-        private IList<(ISlot, SlotViewController)> slotViews = new ThreadSafeList<(ISlot, SlotViewController)>();
-        private IEnumerable<SlotViewController> Viewers => slotViews.Select(pair => pair.Item2);
+        private IList<(ISlot, object)> slotViews = new ThreadSafeList<(ISlot, object)>();
+        public IEnumerable<object> Views => slotViews.Select(pair => pair.Item2);
         [Autogen, SyncToView, HideRoot, HideRootListEntry]
-        public ControllerList<SlotViewController> PartsUI { get; private set; }
+        public ControllerList<object> PartsUI { get; private set; }
 
-        private IPartsContainer PartsContainer { get; set; }
+        public SlotViewCreator ViewCreator { get; set; } = new SlotViewCreator();
         public PartSlotsUIComponent()
         {
-            PartsUI = new ControllerList<SlotViewController>(this, nameof(PartsUI), Array.Empty<SlotViewController>());
-        }
-        public override void Initialize()
-        {
-            base.Initialize();
-            PartsContainer = Parent.GetComponent<PartsContainerComponent>().PartsContainer;
+            PartsUI = new ControllerList<object>(this, nameof(PartsUI), Array.Empty<object>());
         }
         public override void PostInitialize()
         {
             base.PostInitialize();
-            IReadOnlyList<ISlot> slots = PartsContainer.Slots;
+            CreateViews(Parent.GetComponent<PartsContainerComponent>().PartsContainer);
+        }
+        public void CreateViews(IPartsContainer partsContainer)
+        {
+            IReadOnlyList<ISlot> slots = partsContainer.Slots;
 
             for (int i = 0; i < slots.Count; i++)
             {
-                InventorySlot slot = slots[i] as InventorySlot;
+                ISlot slot = slots[i];
                 if (slot != null)
                 {
-                    SlotViewController slotView = new SlotViewController(slot);
-                    slotViews.Add((slot, slotView));
-                    slot.NewPartInSlotEvent.Add(PartsUI.NotifyChanged);
+                    object slotView = ViewCreator.CreateView(slot);
+                    if (slotView != null)
+                    {
+                        slotViews.Add((slot, slotView));
+                        slot.NewPartInSlotEvent.Add(PartsUI.NotifyChanged);
+                    }
                 }
             }
-            PartsUI.Set(Viewers);
+            PartsUI.Set(Views);
             PartsUI.Callbacks.OnAdd.Add(ResetList);
             PartsUI.Callbacks.OnRemove.Add(ResetList);
         }
         private void ResetList(INetObject sender, object obj) => ResetList();
         private void ResetList()
         {
-            PartsUI.Set(Viewers);
+            PartsUI.Set(Views);
             PartsUI.NotifyChanged();
         }
     }

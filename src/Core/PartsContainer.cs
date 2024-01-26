@@ -45,6 +45,11 @@ namespace Parts
         /// Called when any part changes and property e.g. colour, or when any slot gains, loses or gets a different part
         /// </summary>
         public static ThreadSafeAction<IPartsContainer> PartsContainerChangedEventGlobal { get; } = new ThreadSafeAction<IPartsContainer>();
+        public PartsContainer() { }
+        public PartsContainer(IEnumerable<ISlot> slots)
+        {
+            this.slots.AddRange(slots);
+        }
         public bool TryAddSlot(ISlot slot, IPart part)
         {
             if (part != null && !slot.TryAddPart(part)) return false;

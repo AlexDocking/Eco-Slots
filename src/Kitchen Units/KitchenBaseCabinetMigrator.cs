@@ -8,7 +8,7 @@ namespace Parts.Kitchen
 {
     public class KitchenBaseCabinetMigrator: RegularPartsContainerMigrator
     {
-        public KitchenBaseCabinetMigrator(WorldObject worldObject) : base()
+        public KitchenBaseCabinetMigrator() : base()
         {
             SlotDefinitions = new SlotDefinitions()
             {

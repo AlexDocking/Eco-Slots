@@ -32,7 +32,7 @@ namespace Parts
 
         private IPartsContainer partsContainer;
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
-        private IPartsContainerMigrator Migrator => (Parent as IPartsContainerWorldObject)?.GetPartsContainerMigrator();
+        private IPartsContainerMigrator Migrator => (Parent.CreatingItem as IPartsContainerWorldObject)?.GetPartsContainerMigrator();
 
         public override void Initialize()
         {

@@ -10,7 +10,7 @@ namespace Parts.Vehicles
 {
     public class TruckMigrator : RegularPartsContainerMigrator
     {
-        public TruckMigrator(WorldObject worldObject) : base()
+        public TruckMigrator() : base()
         {
             SlotDefinitions = new SlotDefinitions()
             {

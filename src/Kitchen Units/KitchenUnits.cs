@@ -25,20 +25,20 @@ namespace Parts.Kitchen
     [RequireComponent(typeof(PartColoursUIComponent))]
     [RequireComponent(typeof(PartSlotsUIComponent))]
     [RequireComponent(typeof(ModelReplacerComponent))]
-    public class KitchenCupboardObject : WorldObject, IRepresentsItem, IThreadSafeSubscriptions, IPartsContainerWorldObject
+    public class KitchenCupboardObject : WorldObject, IRepresentsItem, IThreadSafeSubscriptions
     {
         public override LocString DisplayName => Localizer.DoStr("Kitchen Base Cabinet");
 
         public Type RepresentedItemType => typeof(KitchenCupboardItem);
-        public IPartsContainerMigrator GetPartsContainerMigrator() => new KitchenBaseCabinetMigrator(this);
     }
     [Serialized]
     [LocDisplayName("Kitchen Base Cabinet")]
     [LocDescription("A kitchen cabinet that sits on the floor.")]
-    public class KitchenCupboardItem : WorldObjectItem<KitchenCupboardObject>, IPersistentData
+    public class KitchenCupboardItem : WorldObjectItem<KitchenCupboardObject>, IPersistentData, IPartsContainerWorldObject
     {
         [Serialized, SyncToView, NewTooltipChildren(CacheAs.Instance, flags: TTFlags.AllowNonControllerTypeForChildren)]
         public object PersistentData { get; set; }
+        public IPartsContainerMigrator GetPartsContainerMigrator() => new KitchenBaseCabinetMigrator();
     }
 
     [Serialized]

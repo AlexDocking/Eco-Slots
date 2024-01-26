@@ -47,8 +47,11 @@ namespace Eco.Mods.TechTree
     [RequireComponent(typeof(PartsContainerComponent))]
     [RequireComponent(typeof(StorageSizeModifierComponent))]
     [RequireComponent(typeof(PartSlotsUIComponent))]
-    public partial class TruckObject : IPartsContainerWorldObject
+    public partial class TruckObject
     {
-        public IPartsContainerMigrator GetPartsContainerMigrator() => new TruckMigrator(this);
+    }
+    public partial class TruckItem : IPartsContainerWorldObject
+    {
+        public IPartsContainerMigrator GetPartsContainerMigrator() => new TruckMigrator();
     }
 }

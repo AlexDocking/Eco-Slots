@@ -251,7 +251,7 @@ namespace Parts.Tests
             InventorySlot slot = partsContainer.Slots[0] as InventorySlot;
             if (!DebugUtils.Assert(slot is not null, "Created slot was not InventorySlot")) return;
 
-            slot.PublicStorage = storage;
+            slot.RequireEmptyStorageSlotStatus = new RequireEmptyStorageSlotStatus(storage);
             slot.Initialize(new HewnDoorObject(), null);
 
             int calls = 0;

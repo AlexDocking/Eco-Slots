@@ -48,11 +48,14 @@ namespace Parts
         ISlot MakeSlotFromDefinition();
         LocString Tooltip();
     }
-    public interface ISlotAddRestriction
+    public interface ISlotRestriction
     {
         LocString Describe();
     }
-    public interface ISlotRemoveRestriction
+    public interface ISlotAddRestriction : ISlotRestriction
+    {
+    }
+    public interface ISlotRemoveRestriction : ISlotRestriction
     {
 
     }

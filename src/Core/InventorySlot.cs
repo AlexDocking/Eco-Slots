@@ -59,44 +59,45 @@ namespace Parts
                 worldObjectHandle = value;
                 worldObjectIsSet = true;
                 this.Inventory.SetOwner(value);
-                if (value.TryGetComponent(out PublicStorageComponent component)) PublicStorage = component.Storage;
+                if (value.TryGetComponent(out PublicStorageComponent component))
+                {
+                    Inventory storage = component.Storage;
+                    bool trackEmptyStorage = GenericDefinition.RestrictionsToAddPart.Any(restrictionToAdd => restrictionToAdd is RequiresEmptyPublicStorageToAddSlotRestriction) || GenericDefinition.RestrictionsToRemovePart.Any(restrictionToRemove => restrictionToRemove is RequiresEmptyPublicStorageToRemoveSlotRestriction);
+                    if (storage != null && trackEmptyStorage)
+                    {
+                        RequireEmptyStorageSlotStatus = new RequireEmptyStorageSlotStatus(storage);
+                    }
+                }
                 SetInventoryRequirementsOnWorldObject();
             }
         }
-        private bool storageIsEmpty = true;
-        public Inventory PublicStorage
+        private void OnSlotStatusChanged()
         {
-            get => publicStorage;
-            set 
+            SlotStatusChanged.Invoke(this);
+        }
+        public RequireEmptyStorageSlotStatus RequireEmptyStorageSlotStatus
+        {
+            get => requireEmptyStorageSlotStatus; set
             {
-                publicStorage = value;
-                publicStorage.OnChanged.Add(OnStorageChanged);
-                storageIsEmpty = publicStorage.IsEmpty;
+                requireEmptyStorageSlotStatus = value;
+                RequireEmptyStorageSlotStatus.StatusChangedEvent.Add(OnSlotStatusChanged);
             }
         }
-        private void OnStorageChanged(User user)
-        {
-            if (GenericDefinition.RestrictionsToAddPart.Any(restriction => restriction is RequiresEmptyPublicStorageToAddSlotRestriction) || GenericDefinition.RestrictionsToRemovePart.Any(restriction => restriction is RequiresEmptyPublicStorageToRemoveSlotRestriction))
-            {
-                if (publicStorage.IsEmpty != storageIsEmpty)
-                {
-                    SlotStatusChanged.Invoke(this);
-                }
-            }
-            storageIsEmpty = publicStorage.IsEmpty;
-        }
+
         private void SetInventoryRequirementsOnWorldObject()
         {
             Log.WriteLine(Localizer.DoStr("SetInventoryRequirementsOnWorldObject"));
 
             if (WorldObject == null) return;
             Log.WriteLine(Localizer.DoStr("Has WorldObject"));
+            WorldObject.TryGetComponent(out PublicStorageComponent publicStorage);
+            Inventory storage = publicStorage?.Storage;
             if (GenericDefinition.RestrictionsToAddPart.Any(restrictionToAdd => restrictionToAdd is RequiresEmptyPublicStorageToAddSlotRestriction))
             {
                 RequireEmptyStorageToAddRestriction restriction = new RequireEmptyStorageToAddRestriction() { IsEnabled = true };
-                if (PublicStorage != null)
+                if (storage != null)
                 {
-                    restriction.InventorySet.Inventories.Add(PublicStorage);
+                    restriction.InventorySet.Inventories.Add(storage);
                     Inventory.AddInvRestriction(restriction);
                 }
             }
@@ -105,11 +106,11 @@ namespace Parts
                 Log.WriteLine(Localizer.DoStr("Try add empty remove restriction"));
 
                 var restriction = new RequireEmptyStorageToRemoveRestriction() { IsEnabled = true };
-                if (PublicStorage != null)
+                if (storage != null)
                 {
                     Log.WriteLine(Localizer.DoStr("Adding empty remove restriction"));
 
-                    restriction.InventorySet.Inventories.Add(PublicStorage);
+                    restriction.InventorySet.Inventories.Add(storage);
                     Inventory.AddInvRestriction(restriction);
                 }
             }
@@ -213,6 +214,7 @@ namespace Parts
         private WorldObjectHandle worldObjectHandle = null;
         private Inventory inventory = new AuthorizationInventory(1);
         private Inventory publicStorage;
+        private RequireEmptyStorageSlotStatus requireEmptyStorageSlotStatus;
 
         public ref int ControllerID => ref id;
 

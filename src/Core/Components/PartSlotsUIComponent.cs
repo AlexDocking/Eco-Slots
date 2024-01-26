@@ -34,11 +34,17 @@ namespace Parts
         {
             base.PostInitialize();
             CreateViews(Parent.GetComponent<PartsContainerComponent>().PartsContainer);
+            PartsUI.Callbacks.OnAdd.Add(ResetList);
+            PartsUI.Callbacks.OnRemove.Add(ResetList);
         }
         public void CreateViews(IPartsContainer partsContainer)
         {
             IReadOnlyList<ISlot> slots = partsContainer.Slots;
-
+            foreach(ISlot slot in slotViews.Select(sv => sv.Item1))
+            {
+                slot.NewPartInSlotEvent.Remove(OnNewPartInSlot);
+            }
+            slotViews.Clear();
             for (int i = 0; i < slots.Count; i++)
             {
                 ISlot slot = slots[i];
@@ -48,15 +54,14 @@ namespace Parts
                     if (slotView != null)
                     {
                         slotViews.Add((slot, slotView));
-                        slot.NewPartInSlotEvent.Add(PartsUI.NotifyChanged);
+                        slot.NewPartInSlotEvent.Add(OnNewPartInSlot);
                     }
                 }
             }
-            PartsUI.Set(Views);
-            PartsUI.Callbacks.OnAdd.Add(ResetList);
-            PartsUI.Callbacks.OnRemove.Add(ResetList);
+            ResetList();
         }
         private void ResetList(INetObject sender, object obj) => ResetList();
+        private void OnNewPartInSlot() => PartsUI.NotifyChanged();
         private void ResetList()
         {
             PartsUI.Set(Views);

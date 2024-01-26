@@ -73,13 +73,14 @@ namespace Parts.Tests
         }
         private class FakeSlotViewCreator : SlotViewCreator
         {
+            public string MockSlotViewName { get; set; } = "MockSlotView";
             public override object CreateView(ISlot slot)
             {
                 object view = base.CreateView(slot);
                 if (view != null) return view;
                 switch (slot)
                 {
-                    case MockSlot: return "MockSlotView";
+                    case MockSlot: return MockSlotViewName;
                     default: return null;
                 }
             }
@@ -95,6 +96,31 @@ namespace Parts.Tests
             var views = uiComponent.Views;
             DebugUtils.AssertEquals(1, views.Count(), "Should only be one view for the one slot");
             DebugUtils.AssertEquals("MockSlotView", views.FirstOrDefault(), "Should have used view creator to return the right view object for the slot");
+        }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldReplaceViewsIfCalledTwice()
+        {
+            PartSlotsUIComponent uiComponent = new PartSlotsUIComponent();
+            FakeSlotViewCreator slotViewCreator = new FakeSlotViewCreator();
+            slotViewCreator.MockSlotViewName = "ViewType1";
+            uiComponent.ViewCreator = slotViewCreator;
+
+            PartsContainer partsContainer1 = new PartsContainer(new ISlot[] { new MockSlot() });
+            uiComponent.CreateViews(partsContainer1);
+            var views = uiComponent.Views;
+            DebugUtils.AssertEquals(1, views.Count(), "Should only be one view for the one slot");
+            DebugUtils.AssertEquals(slotViewCreator.MockSlotViewName, views.LastOrDefault(), "Should have used view creator to return the right view object for the slot");
+
+            slotViewCreator.MockSlotViewName = "ViewType2";
+            PartsContainer partsContainer2 = new PartsContainer(new ISlot[] { new MockSlot() });
+            uiComponent.CreateViews(partsContainer2);
+            views = uiComponent.Views;
+            DebugUtils.AssertEquals(1, views.Count(), "Should only be one view for the one slot");
+            DebugUtils.AssertEquals(slotViewCreator.MockSlotViewName, views.LastOrDefault(), "Should have used view creator to return the right view object for the slot");
+
+            DebugUtils.Assert(!partsContainer1.Slots[0].NewPartInSlotEvent.Any, "Should have removed callback when creating the view for the first slot when replacing it with view for the second slot");
+            DebugUtils.Assert(partsContainer2.Slots[0].NewPartInSlotEvent.Any, "Should have added a callback to refresh the view when the slot gets a new part");
         }
     }
 }

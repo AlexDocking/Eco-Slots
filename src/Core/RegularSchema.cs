@@ -1,11 +1,17 @@
 ﻿using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
+using Eco.Gameplay.Systems.TextLinks;
+using Eco.Shared.Localization;
+using Eco.Shared.Localization.ConstLocs;
 using Eco.Shared.Utils;
+using Eco.Simulation.WorldLayers.Pullers;
 using Parts.Migration;
+using Parts.WIP;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 
 namespace Parts
 {
@@ -140,6 +146,28 @@ namespace Parts
                 }
                 return restrictions;
             }
+        }
+
+        public LocString Tooltip()
+        {
+            LocStringBuilder tooltipBuilder = new LocStringBuilder();
+            var restrictions = RestrictionsToAddPart.ToList();
+            if (RestrictionsToAddPart.FirstOrDefault(restriction => restriction is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
+            {
+                tooltipBuilder.AppendLine(Localizer.DoStr("Can be") + " " + limitedTypeSlotRestriction.AllowedTypes.Select(type => type.UILink()).CommaList(CommonLocs.None, CommonLocs.Or));
+                restrictions.Remove(limitedTypeSlotRestriction);
+            }
+            else
+            {
+            }
+            IEnumerable<LocString> restrictionDescriptions = restrictions.Select(restriction => restriction.Describe());
+            if (restrictionDescriptions.Any())
+            {
+                tooltipBuilder.AppendLine(Localizer.DoStr("Requirements:"));
+                tooltipBuilder.AppendLine(restrictionDescriptions.TextList($"\n{CommonLocs.And}\n"));
+            }
+
+            return tooltipBuilder.ToLocString();
         }
     }
 }

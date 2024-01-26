@@ -44,6 +44,7 @@ namespace Parts
         bool CanPartEverBeRemoved { get; }
         IEnumerable<ISlotAddRestriction> RestrictionsToAddPart { get; }
         IEnumerable<ISlotRemoveRestriction> RestrictionsToRemovePart { get; }
+        LocString Tooltip();
     }
     public interface ISlotAddRestriction
     {

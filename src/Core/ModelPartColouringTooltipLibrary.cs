@@ -107,24 +107,7 @@ namespace Parts
                 else if (part != null) content = Localizer.DoStr(part.DisplayName).Style(Text.Styles.Name).AppendLine(PartTooltip(part));
                 else
                 {
-                    LocStringBuilder contentStringBuilder = new LocStringBuilder();
-                    var restrictions = slot.GenericDefinition.RestrictionsToAddPart.ToList();
-                    if (restrictions.FirstOrDefault(restriction => restriction is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
-                    {
-                        contentStringBuilder.AppendLine(Localizer.DoStr("Can be") + " " + limitedTypeSlotRestriction.AllowedTypes.Select(type => type.UILink()).CommaList(CommonLocs.None, CommonLocs.Or));
-                        restrictions.Remove(limitedTypeSlotRestriction);
-                    }
-                    else
-                    {
-                    }
-                    IEnumerable<LocString> restrictionDescriptions = restrictions.Select(restriction => restriction.Describe());
-                    if (restrictionDescriptions.Any())
-                    {
-                        contentStringBuilder.AppendLine(Localizer.DoStr("Requirements:"));
-                        contentStringBuilder.AppendLine(restrictionDescriptions.TextList($"\n{CommonLocs.And}\n"));
-                    }
-
-                    content = contentStringBuilder.ToLocString();
+                    content = slot.GenericDefinition.Tooltip();
                 }
                 partTooltips.Add((Localizer.DoStr("Slot") + ": " + slot.Name).Style(Text.Styles.Header).AppendLine(content));
             }

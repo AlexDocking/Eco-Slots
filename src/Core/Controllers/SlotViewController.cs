@@ -76,7 +76,7 @@ namespace Parts
         {
             Slot = slot;
             Slot.NewPartInSlotEvent.Add(() => { this.Changed(nameof(PartName)); this.Changed(nameof(SlotInventory)); });
-            //Slot.PartsContainer.SlotRestrictionManager.SlotLockedChangedEvent.Add(OnSlotEnabledChanged);
+            Slot.SlotStatusChanged.Add(OnSlotEnabledChanged);
         }
         private void OnSlotEnabledChanged(ISlot slot)
         {

@@ -1,6 +1,9 @@
 ﻿using Eco.Core.Tests;
+using Eco.Gameplay.Components.Storage;
+using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
+using Eco.Mods.TechTree;
 using Eco.Shared.Utils;
 using Parts.Kitchen;
 using System.Linq;
@@ -228,6 +231,48 @@ namespace Parts.Tests
             DebugUtils.Assert(!nonOptionalSlot.CanRemovePart(), "If slot has no part then nothing can be removed");
             nonOptionalSlot.SetPart(part);
             DebugUtils.Assert(!nonOptionalSlot.CanRemovePart(), "Slot is not optional so the part should be not allowed to be removed");
+        }
+        [CITest]
+        [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
+        public static void ShouldTriggerEventWhenStorageRequirementStatusChanges()
+        {
+            IPartsContainer partsContainer = PartsContainerFactory.Create(new PartsContainerSchema(new[]
+            {
+                new RegularSlotDefinition()
+                {
+                    RequiresEmptyStorageToChangePart = true,
+                    Optional = true
+                }
+            }));
+            partsContainer.TryAddSlot(TestUtility.CreateSlot(), new TestPart());
+
+            Inventory storage = new LimitedInventory(10);
+
+            InventorySlot slot = partsContainer.Slots[0] as InventorySlot;
+            if (!DebugUtils.Assert(slot is not null, "Created slot was not InventorySlot")) return;
+
+            slot.PublicStorage = storage;
+            slot.Initialize(new HewnDoorObject(), null);
+
+            int calls = 0;
+            slot.SlotStatusChanged.Add(s => {
+                calls += 1;
+                DebugUtils.AssertEquals(slot, s, "Event called with wrong slot parameter");
+            });
+            storage.AddItems(typeof(CornItem), 1);
+            DebugUtils.AssertEquals(1, calls, "Adding an item so that the storage becomes non-empty should have triggered a change of status");
+
+            calls = 0;
+            storage.AddItems(typeof(FirSeedItem), 1);
+            DebugUtils.AssertEquals(0, calls, "Adding an item to the non-empty storage should not have triggered a change of status");
+
+            calls = 0;
+            storage.RemoveItems(typeof(FirSeedItem), 1);
+            DebugUtils.AssertEquals(0, calls, "Removing an item while the storage is still not empty should not have triggered a change of status");
+
+            calls = 0;
+            storage.RemoveItems(typeof(CornItem), 1);
+            DebugUtils.AssertEquals(1, calls, "Removing an item so that the storage becomes empty should have triggered a change of status");
         }
     }
 }

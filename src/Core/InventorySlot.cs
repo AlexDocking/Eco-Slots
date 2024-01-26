@@ -37,7 +37,10 @@ namespace Parts
         /// </summary>
         public ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<ISlot, IPart, IPartProperty>();
         public ThreadSafeAction<ISlot> AddableOrRemovableChangedEvent { get; } = new ThreadSafeAction<ISlot>();
-
+        /// <summary>
+        /// Called whenever the accepted range of parts to add or remove changes
+        /// </summary>
+        public ThreadSafeAction<ISlot> SlotStatusChanged { get; } = new ThreadSafeAction<ISlot>();
         private WorldObject WorldObject
         {
             get
@@ -56,25 +59,44 @@ namespace Parts
                 worldObjectHandle = value;
                 worldObjectIsSet = true;
                 this.Inventory.SetOwner(value);
+                if (value.TryGetComponent(out PublicStorageComponent component)) PublicStorage = component.Storage;
                 SetInventoryRequirementsOnWorldObject();
             }
         }
-
+        private bool storageIsEmpty = true;
+        public Inventory PublicStorage
+        {
+            get => publicStorage;
+            set 
+            {
+                publicStorage = value;
+                publicStorage.OnChanged.Add(OnStorageChanged);
+                storageIsEmpty = publicStorage.IsEmpty;
+            }
+        }
+        private void OnStorageChanged(User user)
+        {
+            if (GenericDefinition.RestrictionsToAddPart.Any(restriction => restriction is RequiresEmptyPublicStorageToAddSlotRestriction) || GenericDefinition.RestrictionsToRemovePart.Any(restriction => restriction is RequiresEmptyPublicStorageToRemoveSlotRestriction))
+            {
+                if (publicStorage.IsEmpty != storageIsEmpty)
+                {
+                    SlotStatusChanged.Invoke(this);
+                }
+            }
+            storageIsEmpty = publicStorage.IsEmpty;
+        }
         private void SetInventoryRequirementsOnWorldObject()
         {
             Log.WriteLine(Localizer.DoStr("SetInventoryRequirementsOnWorldObject"));
 
             if (WorldObject == null) return;
             Log.WriteLine(Localizer.DoStr("Has WorldObject"));
-
             if (GenericDefinition.RestrictionsToAddPart.Any(restrictionToAdd => restrictionToAdd is RequiresEmptyPublicStorageToAddSlotRestriction))
             {
                 RequireEmptyStorageToAddRestriction restriction = new RequireEmptyStorageToAddRestriction() { IsEnabled = true };
-                Inventory storage = WorldObject.GetComponent<PublicStorageComponent>()?.Storage;
-                if (storage != null)
+                if (PublicStorage != null)
                 {
-                    Log.WriteLine(Localizer.DoStr("Adding empty add restriction"));
-                    restriction.InventorySet.Inventories.Add(storage);
+                    restriction.InventorySet.Inventories.Add(PublicStorage);
                     Inventory.AddInvRestriction(restriction);
                 }
             }
@@ -83,12 +105,11 @@ namespace Parts
                 Log.WriteLine(Localizer.DoStr("Try add empty remove restriction"));
 
                 var restriction = new RequireEmptyStorageToRemoveRestriction() { IsEnabled = true };
-                Inventory storage = WorldObject.GetComponent<PublicStorageComponent>()?.Storage;
-                if (storage != null)
+                if (PublicStorage != null)
                 {
                     Log.WriteLine(Localizer.DoStr("Adding empty remove restriction"));
 
-                    restriction.InventorySet.Inventories.Add(storage);
+                    restriction.InventorySet.Inventories.Add(PublicStorage);
                     Inventory.AddInvRestriction(restriction);
                 }
             }
@@ -191,6 +212,7 @@ namespace Parts
         private bool worldObjectIsSet = false;
         private WorldObjectHandle worldObjectHandle = null;
         private Inventory inventory = new AuthorizationInventory(1);
+        private Inventory publicStorage;
 
         public ref int ControllerID => ref id;
 

@@ -5,6 +5,7 @@ using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Players;
 using Eco.Gameplay.Systems.NewTooltip;
+using Eco.Gameplay.Systems.TextLinks;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
@@ -58,6 +59,7 @@ namespace Parts
             {
                 worldObjectHandle = value;
                 worldObjectIsSet = true;
+
                 this.Inventory.SetOwner(value);
                 if (value.TryGetComponent(out PublicStorageComponent component))
                 {
@@ -86,10 +88,8 @@ namespace Parts
 
         private void SetInventoryRequirementsOnWorldObject()
         {
-            Log.WriteLine(Localizer.DoStr("SetInventoryRequirementsOnWorldObject"));
 
             if (WorldObject == null) return;
-            Log.WriteLine(Localizer.DoStr("Has WorldObject"));
             WorldObject.TryGetComponent(out PublicStorageComponent publicStorage);
             Inventory storage = publicStorage?.Storage;
             if (GenericDefinition.RestrictionsToAddPart.Any(restrictionToAdd => restrictionToAdd is RequiresEmptyPublicStorageToAddSlotRestriction))
@@ -103,13 +103,9 @@ namespace Parts
             }
             if (GenericDefinition.RestrictionsToRemovePart.Any(restrictionToRemove => restrictionToRemove is RequiresEmptyPublicStorageToRemoveSlotRestriction))
             {
-                Log.WriteLine(Localizer.DoStr("Try add empty remove restriction"));
-
                 var restriction = new RequireEmptyStorageToRemoveRestriction() { IsEnabled = true };
                 if (storage != null)
                 {
-                    Log.WriteLine(Localizer.DoStr("Adding empty remove restriction"));
-
                     restriction.InventorySet.Inventories.Add(storage);
                     Inventory.AddInvRestriction(restriction);
                 }
@@ -121,13 +117,13 @@ namespace Parts
             Inventory defaultInventory = new AuthorizationInventory(1, AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
             SetInventory(defaultInventory);
             SlotRestrictionManager = new InventorySlotRestrictionManager(this, Inventory);
+            GenericDefinition = new RegularSlotDefinition();
         }
         public InventorySlot(ISlotDefinition slotDefinition) : this()
         {
             GenericDefinition = slotDefinition;
             if (!slotDefinition.CanPartEverBeRemoved)
             {
-                Log.WriteLine(Localizer.DoStr("NoRemoveRestriction"));
                 NoRemoveRestriction restriction = new NoRemoveRestriction() { IsEnabled = true };
                 Inventory.AddInvRestriction(restriction);
             }
@@ -209,17 +205,42 @@ namespace Parts
 
         #region IController
         private int id;
+        public ref int ControllerID => ref id;
+
         private IPart part;
         private bool worldObjectIsSet = false;
         private WorldObjectHandle worldObjectHandle = null;
         private Inventory inventory = new AuthorizationInventory(1);
-        private Inventory publicStorage;
         private RequireEmptyStorageSlotStatus requireEmptyStorageSlotStatus;
-
-        public ref int ControllerID => ref id;
-
         public virtual ISlotDefinition GenericDefinition { get; }
 
+        public LocString Tooltip()
+        {
+            IPart part = Part;
+            LocStringBuilder tooltipBuilder = new LocStringBuilder();
+            tooltipBuilder.AppendLine(GenericDefinition.TooltipTitle());
+            if (part == null)
+            {
+                tooltipBuilder.Append(GenericDefinition.TooltipContent());
+                return tooltipBuilder.ToLocString();
+            }
+
+            Item partItem = part as Item;
+            
+            tooltipBuilder.Append(Localizer.DoStr("Contains: "));
+            LocString partDisplayName = Localizer.DoStr(part.DisplayName).Style(Text.Styles.Name);
+            if (partItem != null)
+            {
+                tooltipBuilder.AppendLine(partItem.UILink(Text.Icon(partItem?.IconName) + partDisplayName));
+            }
+            else
+            {
+                tooltipBuilder.AppendLine(partDisplayName);
+            }
+            tooltipBuilder.AppendLine(ModTooltipLibrary.PartTooltip(part));
+
+            return tooltipBuilder.ToLocString();
+        }
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
     }

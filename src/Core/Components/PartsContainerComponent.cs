@@ -7,8 +7,6 @@ using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
 using Parts.Migration;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Parts
 {
@@ -32,8 +30,12 @@ namespace Parts
 
         private IPartsContainer partsContainer;
         public override WorldObjectComponentClientAvailability Availability => WorldObjectComponentClientAvailability.Always;
-        private IPartsContainerMigrator Migrator => (Parent.CreatingItem as IPartsContainerWorldObject)?.GetPartsContainerMigrator();
-
+        public IPartsContainerMigrator Migrator { get; set; }
+        public override void OnCreate()
+        {
+            base.OnCreate();
+            Migrator = (Parent.CreatingItem as IPartsContainerWorldObject)?.GetPartsContainerMigrator();
+        }
         public override void Initialize()
         {
             base.Initialize();

@@ -73,6 +73,7 @@ namespace Parts
                 slot.NewPartInSlotEvent.Add(() => OnSlotChangedPart(slot));
                 slot.PartPropertyChangedEvent.Add((_, _, _) => PartsContainerChangedEventGlobal.Invoke(this));
             }
+            PartsContainerChangedEventGlobal.Invoke(this);
         }
 
         private void OnSlotChangedPart(ISlot slot)

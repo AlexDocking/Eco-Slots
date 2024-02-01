@@ -1,11 +1,19 @@
 ﻿using Eco.Core.Controller;
+using Eco.Core.Items;
 using Eco.Core.Utils;
+using Eco.Gameplay.Components;
 using Eco.Gameplay.Components.Storage;
+using Eco.Gameplay.DynamicValues;
 using Eco.Gameplay.Items;
+using Eco.Gameplay.Items.Recipes;
 using Eco.Gameplay.Objects;
+using Eco.Gameplay.Players;
+using Eco.Gameplay.Skills;
+using Eco.Mods.TechTree;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -29,7 +37,6 @@ namespace Parts
         {
             base.Initialize();
             PartsContainer = Parent.GetComponent<PartsContainerComponent>().PartsContainer;
-
             Inventory publicStorageInventory = Parent.GetComponent<PublicStorageComponent>().Storage;
             if (isNewObject) baseNumSlots = publicStorageInventory.Stacks.Count();
             IEnumerable<InventoryComponent> components = typeof(Inventory).GetProperty("Components", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(publicStorageInventory) as IEnumerable<InventoryComponent>;

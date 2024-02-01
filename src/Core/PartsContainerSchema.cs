@@ -1,5 +1,4 @@
-﻿using Eco.Gameplay.Systems.TextLinks;
-using Eco.Shared.Localization;
+﻿using Eco.Shared.Localization;
 using Eco.Shared.Utils;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,9 +16,13 @@ namespace Parts
             List<LocString> slotTooltips = new List<LocString>();
             foreach(ISlotDefinition slot in slotSchemas)
             {
-                slotTooltips.Add(slot.Tooltip());
+                slotTooltips.Add(slot.TooltipTitle().AppendLine(slot.TooltipContent()));
             }
-            return slotTooltips.NewlineList();
+            if (slotTooltips.Count == 0) return LocString.Empty;
+            LocStringBuilder tooltipBuilder = new LocStringBuilder();
+
+            tooltipBuilder.AppendLine(slotTooltips.NewlineList());
+            return tooltipBuilder.ToLocString();
         }
     }
 }

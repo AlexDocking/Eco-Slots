@@ -32,6 +32,7 @@ namespace Parts
         bool SetPart(IPart part);
         Result TryAddPart(IPart part);
         Result TrySetPart(IPart part);
+        LocString Tooltip();
     }
     public interface ISlot<T> : ISlot where T : ISlotDefinition
     {
@@ -46,7 +47,8 @@ namespace Parts
         IEnumerable<ISlotRemoveRestriction> RestrictionsToRemovePart { get; }
 
         ISlot MakeSlotFromDefinition();
-        LocString Tooltip();
+        LocString TooltipContent();
+        LocString TooltipTitle();
     }
     public interface ISlotRestriction
     {

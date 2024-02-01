@@ -5,7 +5,6 @@ using Eco.Shared.Localization;
 using Eco.Shared.Localization.ConstLocs;
 using Eco.Shared.Utils;
 using Parts.Migration;
-using Parts.WIP;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -140,26 +139,26 @@ namespace Parts
             }
         }
 
-        public LocString Tooltip()
+        public LocString TooltipContent()
         {
             LocStringBuilder tooltipBuilder = new LocStringBuilder();
             var restrictions = RestrictionsToAddPart.ToList();
-            if (RestrictionsToAddPart.FirstOrDefault(restriction => restriction is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
+            if (restrictions.FirstOrDefault(restriction => restriction is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
             {
-                tooltipBuilder.AppendLine(Localizer.DoStr("Can be") + " " + limitedTypeSlotRestriction.AllowedTypes.Select(type => type.UILink()).CommaList(CommonLocs.None, CommonLocs.Or));
+                if (Optional) tooltipBuilder.AppendLine(Localizer.DoStr("Can be") + " " + limitedTypeSlotRestriction.AllowedTypes.Select(type => type.UILink()).CommaList(CommonLocs.None, CommonLocs.Or));
+                else tooltipBuilder.AppendLine(Localizer.DoStr("Must be") + " " + limitedTypeSlotRestriction.AllowedTypes.Select(type => type.UILink()).CommaList(CommonLocs.None, CommonLocs.Or));
+
                 restrictions.Remove(limitedTypeSlotRestriction);
-            }
-            else
-            {
-            }
-            IEnumerable<LocString> restrictionDescriptions = restrictions.Select(restriction => restriction.Describe());
-            if (restrictionDescriptions.Any())
-            {
-                tooltipBuilder.AppendLine(Localizer.DoStr("Requirements:"));
-                tooltipBuilder.AppendLine(restrictionDescriptions.TextList($"\n{CommonLocs.And}\n"));
             }
 
             return tooltipBuilder.ToLocString();
+        }
+        public LocString TooltipTitle()
+        {
+            LocString title = Localizer.Do($"Slot: {Name}");
+            if (Optional) title += Localizer.DoStr(" [Optional]");
+            title = title.Style(Text.Styles.Header);
+            return title;
         }
         public ISlot MakeSlotFromDefinition()
         {

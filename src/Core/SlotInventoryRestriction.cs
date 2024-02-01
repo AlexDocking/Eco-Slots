@@ -49,7 +49,6 @@ namespace Parts
 
         public override int MaxAccepted(Item item, int currentQuantity)
         {
-            Log.WriteLine(Localizer.DoStr($"MaxAccepted:{IsEnabled}, empty={InventorySet.IsEmpty}, quantity={currentQuantity}"));
             if (!IsEnabled) return -1;
             if (!InventorySet.IsEmpty) return 0;
             return base.MaxAccepted(item, currentQuantity);
@@ -62,8 +61,6 @@ namespace Parts
         public InventoryCollectionSet InventorySet { get; set; } = new InventoryCollectionSet();
         public override int MaxPickup(RestrictionCheckData checkData, Item item, int currentQuantity)
         {
-            Log.WriteLine(Localizer.DoStr($"MaxPickup:{IsEnabled}, empty={InventorySet.IsEmpty}, quantity={currentQuantity}"));
-
             if (!IsEnabled) return -1;
             if (!InventorySet.IsEmpty) return 0;
             return base.MaxPickup(checkData, item, currentQuantity);
@@ -77,8 +74,6 @@ namespace Parts
         public override LocString Message => Localizer.Do($"Slot only accepts {this.AllowedItemTypes.Select(x => x.UILink()).CommaList()}.");
         public override int MaxAccepted(Item item, int currentQuantity)
         {
-            Log.WriteLine(Localizer.DoStr($"EditableMaxAccepted:{IsEnabled}, allowedItemTypes={AllowedItemTypes.Count}, quantity={currentQuantity}"));
-
             if (!IsEnabled) return -1;
             if (!AllowedItemTypes.Any()) return -1;
             return AllowedItemTypes.Contains(item.Type) ? -1 : 0;

@@ -1,5 +1,4 @@
 ﻿using Eco.Core.Tests;
-using Eco.Gameplay.Components.Storage;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
@@ -118,8 +117,9 @@ namespace Parts.Tests
             ISlot slot = TestUtility.CreateSlot();
             partsContainer.TryAddSlot(slot, box);
 
+            TestWorldObjectItem.Migrator = new TestPartsContainerMigrator(partsContainer);
 
-            worldObject.Migrator = new TestPartsContainerMigrator(partsContainer);
+            worldObject.CreationItem = new TestWorldObjectItem();
 
             worldObject.InitializeForTest();
 
@@ -152,8 +152,8 @@ namespace Parts.Tests
             ISlot slot = TestUtility.CreateSlot();
             partsContainer.TryAddSlot(slot, null);
 
-
-            worldObject.Migrator = new TestPartsContainerMigrator(partsContainer);
+            TestWorldObjectItem.Migrator = new TestPartsContainerMigrator(partsContainer);
+            worldObject.CreationItem = new TestWorldObjectItem();
 
             worldObject.InitializeForTest();
 

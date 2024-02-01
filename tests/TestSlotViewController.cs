@@ -68,6 +68,9 @@ namespace Parts.Tests
             public Result CanSetPart(IPart part) => default;
             public void Initialize(WorldObject worldObject, IPartsContainer partsContainer) { }
             public bool SetPart(IPart part) => default;
+
+            public LocString Tooltip() => default;
+
             public Result TryAddPart(IPart part) => default;
             public Result TrySetPart(IPart part) => default;
         }

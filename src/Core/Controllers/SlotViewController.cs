@@ -32,7 +32,7 @@ namespace Parts
                     Result canRemovePart = Slot.CanRemovePart();
                     if (!canRemovePart)
                     {
-                        locStringBuilder.Append(PreventIcon + Localizer.Do($"Locked until {(canRemovePart.Message.TryGetInlineValue(out string inlinedMessage) ? inlinedMessage : canRemovePart.Message.NotTranslated)}").Style(Text.Styles.ErrorLight));
+                        locStringBuilder.Append(PreventIcon + canRemovePart.Message.Style(Text.Styles.ErrorLight));
                     }
                 }
                 else
@@ -40,7 +40,7 @@ namespace Parts
                     Result canAddPart = Slot.CanAcceptAnyPart();
                     if (!canAddPart)
                     {
-                        locStringBuilder.Append(PreventIcon + Localizer.Do($"Locked until {(canAddPart.Message.TryGetInlineValue(out string inlinedMessage) ? inlinedMessage : canAddPart.Message.NotTranslated)}").Style(Text.Styles.ErrorLight));
+                        locStringBuilder.Append(PreventIcon + canAddPart.Message.Style(Text.Styles.ErrorLight));
                     }
                 }
                 return locStringBuilder.ToLocString();

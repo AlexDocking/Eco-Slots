@@ -1,15 +1,10 @@
 ﻿using Eco.Core.Tests;
-using Eco.Core.Utils;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
-using Eco.Shared.Localization;
-using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
 using Parts.Kitchen;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 
 namespace Parts.Tests
@@ -61,6 +56,8 @@ namespace Parts.Tests
             InventorySlot slot = TestUtility.CreateInventorySlot();
             WorldObject worldObject = new KitchenCupboardObject();
             partsContainer.TryAddSlot(slot, null);
+            partsContainer.Initialize(worldObject);
+
             int calls = 0;
             Action<IPartsContainer> callback = container =>
                         {
@@ -69,7 +66,6 @@ namespace Parts.Tests
                         };
             PartsContainer.PartsContainerChangedEventGlobal.Add(callback);
 
-            partsContainer.Initialize(worldObject);
             KitchenBaseCabinetBoxItem box = new KitchenBaseCabinetBoxItem();
             slot.Inventory.AddItem(box);
             DebugUtils.AssertEquals(1, calls, $"Should have fired global event on {nameof(PartsContainer)} when item was added to slot");
@@ -88,22 +84,22 @@ namespace Parts.Tests
         {
             PartsContainer migratedPartsContainer = new PartsContainer();
 
-            WorldObject worldObject = new TestWorldObject() { Migrator = new TestPartsContainerMigrator(migratedPartsContainer) };
             
             IPartsContainer existingPartsContainer = new PartsContainer();
             ISlot slot = TestUtility.CreateSlot(new RegularSlotDefinition() { Name = "Box" });
             KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
-            existingPartsContainer.Initialize(worldObject);
-
             existingPartsContainer.TryAddSlot(slot, part);
-            if (!DebugUtils.AssertEquals(part.GetType(), slot.Part?.GetType(), "Could not set part")) return;
+            //existingPartsContainer.Initialize(worldObject);
+            if (!DebugUtils.AssertEquals(part, existingPartsContainer.Parts.FirstOrDefault(), "Could not set part")) return;
 
             //set up existingPartsContainer as the persistent data
-            ItemPersistentData itemPersistentData = new ItemPersistentData();
-            itemPersistentData.Entries.Add(typeof(PartsContainerComponent), existingPartsContainer);
-            worldObject.CreationItem = new TestWorldObjectItem() { persistentData = itemPersistentData };
+            //ItemPersistentData itemPersistentData = new ItemPersistentData();
+            //itemPersistentData.Entries.Add(typeof(PartsContainerComponent), existingPartsContainer);
+            //TestWorldObjectItem.Migrator = new TestPartsContainerMigrator(existingPartsContainer);
+            //worldObject.CreationItem = new TestWorldObjectItem() { persistentData = itemPersistentData };
 
-            worldObject.InitializeForTest();
+            //worldObject.InitializeForTest();
+            WorldObject worldObject = TestUtility.CreateWorldObject(existingPartsContainer, new TestPartsContainerMigrator(migratedPartsContainer));
 
             //Should restore existingPartsContainer to the PartsContainerComponent as persistent data,
             //then migrate its contents to the migratedPartsContainer instance
@@ -113,39 +109,18 @@ namespace Parts.Tests
             DebugUtils.AssertEquals(migratedPartsContainer, partsContainerComponent?.PartsContainer, "Should have used migrator to set the new parts container");
             DebugUtils.AssertEquals(part, partsContainerComponent?.PartsContainer?.Parts?.FirstOrDefault(), "Should have passed in existing parts container to migrator");
         }
-        [Serialized]
-        public class FakePartsContainer : IPartsContainer
-        {
-            public IReadOnlyList<IPart> Parts => new List<IPart>();
-            public IReadOnlyList<ISlot> Slots { get; set; } = new List<ISlot>();
-            public ThreadSafeAction<ISlot> NewPartInSlotEvent { get; } = new ThreadSafeAction<ISlot>();
-            int id;
-            public ref int ControllerID => ref id;
-            public event PropertyChangedEventHandler PropertyChanged;
-            public bool TryAddSlot(ISlot slot, IPart part) => true;
 
-            /// <summary>
-            /// Count the number of times Initialize is called
-            /// </summary>
-            public int NumberOfInitializeCalls { get; private set; }
-            public void Initialize(WorldObject worldObject)
-            {
-                NumberOfInitializeCalls += 1;
-            }
-
-            public void RemovePart(ISlot slot) { }
-        }
-        
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldInitializePartsContainerFromPersistentData()
         {
             FakePartsContainer fakePartsContainer = new FakePartsContainer();
 
-            WorldObject worldObject = new TestWorldObject() { Migrator = new TestPartsContainerMigrator(null) };
+            WorldObject worldObject = new TestWorldObject();
             //set up fakePartsContainer as the persistent data
             ItemPersistentData itemPersistentData = new ItemPersistentData();
             itemPersistentData.Entries.Add(typeof(PartsContainerComponent), fakePartsContainer);
+            TestWorldObjectItem.Migrator = new TestPartsContainerMigrator(fakePartsContainer);
             worldObject.CreationItem = new TestWorldObjectItem() { persistentData = itemPersistentData };
 
             //should now restore persistent data
@@ -153,33 +128,21 @@ namespace Parts.Tests
 
             DebugUtils.AssertEquals(1, fakePartsContainer.NumberOfInitializeCalls, "Should have initialized parts container from persistent data during Initialize()");
         }
-        public class FakePartsContainerFactory : IPartsContainerFactory
-        {
-            public FakePartsContainer Instance { get; set; }
-            public IPartsContainer Create() => Instance;
-        }
 
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldInitializeNewPartsContainerWhenThereIsNoPersistentData()
         {
             FakePartsContainer fakePartsContainer = new FakePartsContainer();
-            FakePartsContainerFactory fakePartsContainerFactory = new FakePartsContainerFactory() { Instance = fakePartsContainer };
-            PartsContainerFactory.Factory = fakePartsContainerFactory;
-            WorldObject worldObject = new TestWorldObject();
-            worldObject.InitializeForTest();
-
-            PartsContainerFactory.Factory = new DefaultPartsContainerFactory();
+            //FakePartsContainerFactory fakePartsContainerFactory = new FakePartsContainerFactory() { Instance = fakePartsContainer };
+            //PartsContainerFactory.Factory = fakePartsContainerFactory;
+            TestUtility.CreateWorldObject(fakePartsContainer);
+            //worldObject.InitializeForTest();
+            //PartsContainerFactory.Factory = new DefaultPartsContainerFactory();
 
             DebugUtils.AssertEquals(1, fakePartsContainer.NumberOfInitializeCalls, "Should have initialized new parts container given by factory");
         }
     }
-    [Serialized]
-    [LocCategory("Hidden")]
-    public class TestWorldObjectItem : WorldObjectItem<TestWorldObject>, IPersistentData
-    {
-        public ItemPersistentData persistentData;
-        public object PersistentData { get => persistentData; set => persistentData = value as ItemPersistentData; }
-    }
+    
     
 }

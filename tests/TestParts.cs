@@ -1,38 +1,15 @@
 ﻿using Eco.Core.Controller;
-using Eco.Core.Serialization.Serializers;
 using Eco.Core.Tests;
 using Eco.Core.Utils;
-using Eco.Gameplay.Items;
 using Eco.Gameplay.Systems.Messaging.Chat.Commands;
-using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
 using Eco.Shared.View;
 using Parts.Kitchen;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Parts.Tests
 {
-    [Serialized]
-    [Category("Hidden")]
-    public class TestPart : Item, IPart
-    {
-        public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
 
-        string IPart.DisplayName => "Test Part";
-    }
-    [Serialized]
-    [Category("Hidden")]
-    public class TestPart2 : Item, IPart
-    {
-        public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
-
-        string IPart.DisplayName => "Test Part 2";
-    }
     [ChatCommandHandler]
     public static class TestParts
     {
@@ -64,14 +41,7 @@ namespace Parts.Tests
             DebugUtils.AssertEquals(Color.Orange, colouring.Colour, "Did not set colour correctly");
         }
 
-        private class TestColouredPart : IHasModelPartColour
-        {
-            public ModelPartColouring ColourData { get; internal set; } = new ModelPartColouring();
-
-            public string DisplayName => "Test name";
-
-            public ThreadSafeAction<IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<IPart, IPartProperty>();
-        }
+        
         [CITest]
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldChangeModelPartColouringColourThroughView()

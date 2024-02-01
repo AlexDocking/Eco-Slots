@@ -39,15 +39,12 @@ namespace Parts
             }
             if (Inventory.GetMaxAcceptedVal(partItem, Inventory.Stacks.First().Quantity) > 0)
             {
-                Log.WriteLine(Localizer.DoStr("Restriction manager accepts item"));
                 return true;
             }
             return false;
         }
         public bool CanRemovePart(IPart part, out List<LocString> failureReasons)
         {
-            Log.WriteLine(Localizer.DoStr("CanRemovePart"));
-
             failureReasons = new List<LocString>();
             if (Inventory.IsEmpty) return false;
 
@@ -56,19 +53,15 @@ namespace Parts
                 failureReasons.Add(Localizer.Do($"{part?.GetType().Name ?? "null"} is not an Item"));
                 return false;
             }
-            foreach (InventoryRestriction r in Inventory.Restrictions) Log.WriteLine(Localizer.Do($"Restriction:{r.GetType()}"));
             
             IEnumerable<InventoryRestriction> violatedRestrictions = Inventory.Restrictions.Where(restriction => restriction.MaxPickup(RestrictionCheckData.New(Inventory, null, null), partItem, 1) == 0);
-            Log.WriteLine(Localizer.DoStr($"Violated restrictions:{violatedRestrictions.Count()}"));
 
             if (violatedRestrictions.Any())
             {
-                Inventory.TryGetBestRestrictionMessage(violatedRestrictions, out LocString failureMessage);
-                failureReasons.Add(failureMessage);
-                Log.WriteLine(Localizer.DoStr("Cannot remove:" +  failureMessage));
+                //Inventory.TryGetBestRestrictionMessage(violatedRestrictions, out LocString failureMessage);
+                failureReasons.Add(Localizer.DoStr("Locked until storage is empty"));
                 return false;
             }
-            Log.WriteLine(Localizer.DoStr("can remove"));
 
             return true;
         }
@@ -77,7 +70,7 @@ namespace Parts
         {
             var violatedRequireEmptyStorageRestriction = Inventory.Restrictions.FirstOrDefault(restriction => restriction is RequireEmptyStorageToAddRestriction requireEmptyStorageToAddRestriction && requireEmptyStorageToAddRestriction.MaxAccepted(null, 0) == 0);
             if (violatedRequireEmptyStorageRestriction == null) return Result.Succeeded;
-            return Result.Fail(violatedRequireEmptyStorageRestriction.Message);
+            return Result.Fail(Localizer.DoStr("Locked until storage is empty"));
         }
     }
 }

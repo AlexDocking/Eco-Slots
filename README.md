@@ -28,3 +28,33 @@ It's WIP as it's currently performing the roles of both migration and schema.
 Displays all the slots using views created specifically for each slot. Different types of slot can then be rendered differently, and mods can override how they are displayed in the list.
 ### StorageSizeModifierComponent, ModelPartColourComponent & ModelReplacerComponent
 These components listen for changes to the object's installed parts and make their relevant changes to the object and its other components.
+
+
+## Example 1:
+The tooltip for the cabinet type shows what slots the cabinet will have when placed, and what they accept as parts.
+<img src="/pictures/Cabinet type tooltip.png">
+
+After placement the slots tab shows all the cabinet's slots
+<img src="/pictures/Cabinet slots tab without door.png">
+
+The colours tab shows the colours of the installed parts and let you change their colours
+<img src="/pictures/Cabinet colour tab without door.png">
+
+The world object model and tooltip are updated accordingly
+<img src="/pictures/Coloured cabinet without door with tooltip.png">
+
+Upon putting a new door in the 'Door' slot, the model and tooltip are again updated
+<img src="/pictures/Coloured cabinet with door with tooltip.png">
+
+Hovering over the part in the 'Unit' slot shows the part with its colour
+<img src="/pictures/Cabinet slots tab with unit tooltip.png">
+
+## Example 2:
+A truck with empty storage and a part installed to increase the number of storage slots
+<img src="/pictures/Truck slots tab with big truck bed tooltip.png">
+
+As soon as the upgrade is installed the truck gets extra storage room.
+<img src="/pictures/Truck expanded storage with an item in.png">
+
+Having put an item in the storage, the slot is now locked and the upgrade cannot be removed until the storage is empty again
+<img src="/pictures/Truck slots tab with big truck bed.png">

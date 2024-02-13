@@ -24,7 +24,7 @@ Is a list of slots owned by an object. It is stored on the WorldObject's PartsCo
 Migrates any existing parts container and ensure it is set up with the correct slots and parts.
 WorldObjectItems specify their object's slots, restrictions and pre-existing parts with this.
 It's WIP as it's currently performing the roles of both migration and schema.
-## #SlotsUIComponent
+### SlotsUIComponent
 Displays all the slots using views created specifically for each slot. Different types of slot can then be rendered differently, and mods can override how they are displayed in the list.
 ### StorageSizeModifierComponent, ModelPartColourComponent & ModelReplacerComponent
 These components listen for changes to the object's installed parts and make their relevant changes to the object and its other components.
@@ -54,7 +54,7 @@ A truck with empty storage and a part installed to increase the number of storag
 <img src="/pictures/Truck slots tab with big truck bed tooltip.png">
 
 As soon as the upgrade is installed the truck gets extra storage room.
-<img src="/pictures/Truck expanded storage with an item in.png">
+<img src="/pictures/Truck expanded storage with item in.png">
 
 Having put an item in the storage, the slot is now locked and the upgrade cannot be removed until the storage is empty again
-<img src="/pictures/Truck slots tab with big truck bed.png">
+<img src="/pictures/Truck slots tab with big truck bed and non empty storage.png">

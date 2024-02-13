@@ -18,15 +18,15 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldCreateCorrectNumberOfSlotsInRegularMigrator()
         {
-            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
+            DefaultPartsContainerMigrator migrator = new DefaultPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         Name = "First Slot"
                     },
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         Name = "Second Slot"
                     }
@@ -37,7 +37,7 @@ namespace Parts.Tests
             IPartsContainer partsContainer = migrator.Migrate(worldObject, PartsContainerFactory.Create());
             partsContainer.Initialize(worldObject);
 
-            DebugUtils.AssertEquals(2, partsContainer.Slots.Count(), "Should have made two slots");
+            DebugUtils.AssertEquals(2, partsContainer.Slots.Count, "Should have made two slots");
 
             ISlot firstSlot = partsContainer.Slots[0];
             ISlot secondSlot = partsContainer.Slots[1];
@@ -48,30 +48,28 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldSetOptionalPartsInRegularMigrator()
         {
-            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
+            DefaultPartsContainerMigrator migrator = new DefaultPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         Optional = true
                     },
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         Optional = false
                     }
                 }
             };
 
-            WorldObject worldObject = new TestWorldObject();
-            IPartsContainer partsContainer = migrator.Migrate(worldObject, PartsContainerFactory.Create());
-            partsContainer.Initialize(worldObject);
+            TestUtility.CreateWorldObject(PartsContainerFactory.Create(), out IPartsContainer partsContainer, migrator);
 
             if (partsContainer.Slots.Count != 2) return;
             ISlot firstSlot = partsContainer.Slots[0];
-            firstSlot.SetPart(new TestPart());
+            DebugUtils.Assert(firstSlot.SetPart(new TestPart()), "Should have been allowed to set the part");
             ISlot secondSlot = partsContainer.Slots[1];
-            secondSlot.SetPart(new TestPart());
+            DebugUtils.Assert(secondSlot.SetPart(new TestPart()), "Should have been allowed to set the part");
 
             DebugUtils.Assert(firstSlot.CanRemovePart(), "Slot should be optional");
             DebugUtils.Assert(!secondSlot.CanRemovePart(), "Slot should not be optional"); ;
@@ -80,11 +78,11 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldSetCorrectTypesInRegularMigrator()
         {
-            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
+            DefaultPartsContainerMigrator migrator = new DefaultPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         AllowedItemTypes = new[]
                         {
@@ -101,7 +99,7 @@ namespace Parts.Tests
             if (partsContainer.Slots.Count != 1) return;
 
             ISlot firstSlot = partsContainer.Slots[0];
-            IEnumerable<Type> allowedItemTypes = firstSlot.GenericDefinition.RestrictionsToAddPart.OfType<LimitedTypeSlotRestriction>().SelectMany(restriction => restriction.AllowedTypes);
+            IEnumerable<Type> allowedItemTypes = firstSlot.SlotDefinition.RestrictionsToAddPart.OfType<LimitedTypeSlotRestriction>().SelectMany(restriction => restriction.AllowedTypes);
             DebugUtils.AssertEquals(1, allowedItemTypes.Count(), "Should only be one allowed item type");
             DebugUtils.AssertEquals(typeof(TestPart), allowedItemTypes.FirstOrDefault(), "Should have set allowed item type");
         }
@@ -109,15 +107,15 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldReplaceDefaultPartInRegularMigrator()
         {
-            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
+            DefaultPartsContainerMigrator migrator = new DefaultPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         MustHavePart = () => new TestPart()
                     },
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                 }
             };
 
@@ -139,15 +137,15 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldSetDefaultPartInRegularMigratorOnlyIfEmpty()
         {
-            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
+            DefaultPartsContainerMigrator migrator = new DefaultPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         MustHavePartIfEmpty = () => new TestPart()
                     },
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         MustHavePartIfEmpty = () => new TestPart()
                     }
@@ -174,11 +172,11 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldEnsureEmptyStorages()
         {
-            RegularPartsContainerMigrator migrator = new RegularPartsContainerMigrator()
+            DefaultPartsContainerMigrator migrator = new DefaultPartsContainerMigrator()
             {
                 SlotDefinitions = new SlotDefinitions()
                 {
-                    new RegularSlotDefinition()
+                    new DefaultInventorySlotDefinition()
                     {
                         RequiresEmptyStorageToChangePart = true,
                         Optional = true

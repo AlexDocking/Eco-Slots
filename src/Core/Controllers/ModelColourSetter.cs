@@ -1,33 +1,32 @@
 ﻿using Eco.Core.Controller;
 using Eco.Gameplay.Objects;
-using Eco.Shared.Localization;
 using Eco.Shared.Utils;
 using Eco.Shared.View;
 using System.ComponentModel;
 
-namespace Parts
+namespace Parts.Effects
 {
     /// <summary>
     /// Send colours to the client to change the colour of the world object model
     /// </summary>
-    public class ModelColourSetterViewController : IController, INotifyPropertyChanged
+    public class ModelColourSetter : IController, INotifyPropertyChanged
     {
         public WorldObject WorldObject { get; private set; }
-        public IHasModelPartColour Model { get; private set; }
+        public IColouredPart Model { get; private set; }
 
-        public void SetModel(WorldObject worldObject, IHasModelPartColour model)
+        public void SetModel(WorldObject worldObject, IColouredPart model)
         {
             WorldObject = worldObject;
-            Model?.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), OnModelChanged);
+            Model?.ColourData.Unsubscribe(nameof(ModelPartColourData.Colour), OnModelChanged);
             Model = model;
-            Model?.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), OnModelChanged);
+            Model?.ColourData.SubscribeAndCall(nameof(ModelPartColourData.Colour), OnModelChanged);
         }
         /// <summary>
         /// Update the view with the model colour
         /// </summary>
         private void OnModelChanged()
         {
-            ModelPartColouring partColouring = Model?.ColourData;
+            ModelPartColourData partColouring = Model?.ColourData;
             if (partColouring == null) return;
 
             SetColour(partColouring.ModelName, partColouring.Colour);

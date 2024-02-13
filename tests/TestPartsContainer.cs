@@ -86,28 +86,17 @@ namespace Parts.Tests
 
             
             IPartsContainer existingPartsContainer = new PartsContainer();
-            ISlot slot = TestUtility.CreateSlot(new RegularSlotDefinition() { Name = "Box" });
+            ISlot slot = TestUtility.CreateSlot(new DefaultInventorySlotDefinition() { Name = "Box" });
             KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
             existingPartsContainer.TryAddSlot(slot, part);
-            //existingPartsContainer.Initialize(worldObject);
+
             if (!DebugUtils.AssertEquals(part, existingPartsContainer.Parts.FirstOrDefault(), "Could not set part")) return;
 
-            //set up existingPartsContainer as the persistent data
-            //ItemPersistentData itemPersistentData = new ItemPersistentData();
-            //itemPersistentData.Entries.Add(typeof(PartsContainerComponent), existingPartsContainer);
-            //TestWorldObjectItem.Migrator = new TestPartsContainerMigrator(existingPartsContainer);
-            //worldObject.CreationItem = new TestWorldObjectItem() { persistentData = itemPersistentData };
+            //Should restore 'existingPartsContainer' to the PartsContainerComponent as persistent data
+            TestUtility.CreateWorldObject(existingPartsContainer, out IPartsContainer partsContainerOnWorldObject, new TestPartsContainerMigrator(migratedPartsContainer));
 
-            //worldObject.InitializeForTest();
-            WorldObject worldObject = TestUtility.CreateWorldObject(existingPartsContainer, new TestPartsContainerMigrator(migratedPartsContainer));
-
-            //Should restore existingPartsContainer to the PartsContainerComponent as persistent data,
-            //then migrate its contents to the migratedPartsContainer instance
-            PartsContainerComponent partsContainerComponent = worldObject.GetOrCreateComponent<PartsContainerComponent>();
-
-
-            DebugUtils.AssertEquals(migratedPartsContainer, partsContainerComponent?.PartsContainer, "Should have used migrator to set the new parts container");
-            DebugUtils.AssertEquals(part, partsContainerComponent?.PartsContainer?.Parts?.FirstOrDefault(), "Should have passed in existing parts container to migrator");
+            DebugUtils.AssertEquals(migratedPartsContainer, partsContainerOnWorldObject, "Should have used migrator to set the new parts container");
+            DebugUtils.AssertEquals(part, partsContainerOnWorldObject?.Parts?.FirstOrDefault(), "Should have passed in existing parts container to migrator");
         }
 
         [CITest]
@@ -134,11 +123,7 @@ namespace Parts.Tests
         public static void ShouldInitializeNewPartsContainerWhenThereIsNoPersistentData()
         {
             FakePartsContainer fakePartsContainer = new FakePartsContainer();
-            //FakePartsContainerFactory fakePartsContainerFactory = new FakePartsContainerFactory() { Instance = fakePartsContainer };
-            //PartsContainerFactory.Factory = fakePartsContainerFactory;
-            TestUtility.CreateWorldObject(fakePartsContainer);
-            //worldObject.InitializeForTest();
-            //PartsContainerFactory.Factory = new DefaultPartsContainerFactory();
+            TestUtility.CreateWorldObject(fakePartsContainer, out _);
 
             DebugUtils.AssertEquals(1, fakePartsContainer.NumberOfInitializeCalls, "Should have initialized new parts container given by factory");
         }

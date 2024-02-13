@@ -3,13 +3,18 @@ using Eco.Core.Utils;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Systems.NewTooltip;
-using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
-using Eco.Shared.Utils;
 using Parts.Migration;
 
 namespace Parts
 {
+    /// <summary>
+    /// Allows a world object to have parts installed.
+    /// No UI or specific functionality of what those parts can do is defined here.
+    /// Its only responsibility is to store a reference to the parts container and ensure it is migrated and initialized.
+    /// The parts container is our model in the MVC architecture.
+    /// UI components and other types of view, such as disabling the object if the correct part is not installed, are kept separate to promote loose coupling and mod extensibility.
+    /// </summary>
     [Serialized]
     [NoIcon]
     [Priority(PriorityAttribute.High)]
@@ -34,7 +39,8 @@ namespace Parts
         public override void OnCreate()
         {
             base.OnCreate();
-            Migrator = (Parent.CreatingItem as IPartsContainerWorldObject)?.GetPartsContainerMigrator();
+            //Get the migrator/schema from the world object's item. Setting this in OnCreate would allow a mod to override it before Initialize is called
+            Migrator = (Parent.CreatingItem as IPartsContainerWorldObjectItem)?.GetPartsContainerMigrator();
         }
         public override void Initialize()
         {
@@ -43,7 +49,7 @@ namespace Parts
         }
         private bool initialized = false;
         /// <summary>
-        /// Initialize the parts container.
+        /// Migrate and initialize the parts container.
         /// </summary>
         public void EnsureInitialized()
         {

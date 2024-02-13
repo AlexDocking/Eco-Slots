@@ -18,14 +18,30 @@ namespace Parts.Tests
     public static class TestUtility
     {
         public static ISlot CreateSlot() => CreateInventorySlot();
-        public static InventorySlot CreateInventorySlot() => CreateInventorySlot(new RegularSlotDefinition());
+        public static ISlot CreateAndInitializeSlot()
+        {
+            ISlot slot = CreateSlot();
+            IPartsContainer partsContainer = PartsContainerFactory.Create();
+            partsContainer.TryAddSlot(slot, null);
+            CreateWorldObject(partsContainer, out _);
+            return slot;
+        }
+        public static ISlot CreateAndInitializeInventorySlot(ISlotDefinition slotDefinition)
+        {
+            ISlot slot = CreateInventorySlot(slotDefinition);
+            IPartsContainer partsContainer = PartsContainerFactory.Create();
+            partsContainer.TryAddSlot(slot, null);
+            CreateWorldObject(partsContainer, out _);
+            return slot;
+        }
+        public static InventorySlot CreateInventorySlot() => CreateInventorySlot(new DefaultInventorySlotDefinition());
         public static InventorySlot CreateInventorySlot(ISlotDefinition slotDefinition)
         {
             return new InventorySlot(slotDefinition);
         }
 
         public static ISlot CreateSlot(ISlotDefinition slotDefinition) => CreateInventorySlot(slotDefinition);
-        public static WorldObject CreateWorldObject(IPartsContainer existingPartsContainer, IPartsContainerMigrator migrator = null)
+        public static WorldObject CreateWorldObject(IPartsContainer existingPartsContainer, out IPartsContainer migratedPartsContainer, IPartsContainerMigrator migrator = null)
         {
             WorldObject worldObject = new TestWorldObject();
             typeof(WorldObjectManager).GetMethod("InsertWorldObject", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke((WorldObjectManager)ServiceHolder<IWorldObjectManager>.Obj, new object[] { worldObject });
@@ -37,6 +53,7 @@ namespace Parts.Tests
             worldObject.FinishInitialize();
             worldObject.Components.ForEach(x => x.PostInitialize());
             typeof(WorldObject).GetProperty(nameof(WorldObject.IsInitialized)).SetValue(worldObject, true);
+            migratedPartsContainer = worldObject.GetComponent<PartsContainerComponent>().PartsContainer;
             return worldObject;
         }
     }
@@ -57,9 +74,9 @@ namespace Parts.Tests
             typeof(WorldObject).GetProperty(nameof(WorldObject.IsInitialized)).SetValue(worldObject, true);
         }
     }
-    public class TestColouredPart : IHasModelPartColour
+    public class TestColouredPart : IColouredPart
     {
-        public ModelPartColouring ColourData { get; internal set; } = new ModelPartColouring();
+        public ModelPartColourData ColourData { get; internal set; } = new ModelPartColourData();
 
         public string DisplayName => "Test name";
 
@@ -103,14 +120,9 @@ namespace Parts.Tests
 
         public void RemovePart(ISlot slot) { }
     }
-    public class FakePartsContainerFactory : IPartsContainerFactory
-    {
-        public FakePartsContainer Instance { get; set; }
-        public IPartsContainer Create() => Instance;
-    }
     [Serialized]
     [LocCategory("Hidden")]
-    public class TestWorldObjectItem : WorldObjectItem<TestWorldObject>, IPartsContainerWorldObject, IPersistentData
+    public class TestWorldObjectItem : WorldObjectItem<TestWorldObject>, IPartsContainerWorldObjectItem, IPersistentData
     {
         public ItemPersistentData persistentData;
         public object PersistentData { get => persistentData; set => persistentData = value as ItemPersistentData; }

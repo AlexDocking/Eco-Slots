@@ -11,10 +11,16 @@ using System.Threading.Tasks;
 
 namespace Parts
 {
+    /// <summary>
+    /// WIP. This feature needs expanding so that slots of all types have statuses.
+    /// </summary>
     public interface ISlotStatus
     {
         bool Violated { get; }
     }
+    /// <summary>
+    /// WIP. Used for checking whether a part can be removed when the WorldObject's storage is not empty.
+    /// </summary>
     public class RequireEmptyStorageSlotStatus : ISlotStatus
     {
         public RequireEmptyStorageSlotStatus(Inventory storage)

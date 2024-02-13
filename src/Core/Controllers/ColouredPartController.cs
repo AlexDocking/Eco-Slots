@@ -6,15 +6,21 @@ using Eco.Shared.Utils;
 using System;
 using System.ComponentModel;
 
-namespace Parts
+namespace Parts.UI
 {
+    /// <summary>
+    /// UI controller for setting the colour of a part. You can copy-paste the hex code or set the channels individually.
+    /// </summary>
     [Serialized, AutogenClass]
     [UITypeName("PropertyPage")]
-    public class ColouredPartViewController : IController, INotifyPropertyChanged
+    public sealed class ColouredPartController : IController, INotifyPropertyChanged
     {
         [SyncToView, Autogen]
         [UITypeName("GeneralHeader")]
         public string NameDisplay => Model?.DisplayName;
+        /// <summary>
+        /// A box to show the colour.
+        /// </summary>
         [SyncToView, Autogen, PropReadOnly]
         [UITypeName("StringTitle")]
         [LocDisplayName("Preview")]
@@ -70,6 +76,7 @@ namespace Parts
             }
         }
 
+        #region Colour channel UI
         [LocDisplayName("Red")]
         [SyncToView, Autogen, AutoRPC]
         [Range(0, 255), UITypeName("Int32")]
@@ -103,6 +110,8 @@ namespace Parts
                 B = value / 255f;
             }
         }
+        #endregion
+
         private string ToHex()
         {
             return ColorUtility.RGBHex(new Color(R, G, B).HexRGBA);
@@ -112,23 +121,26 @@ namespace Parts
         private float g = 1;
         private float b = 1;
 
-        public IHasModelPartColour Model { get; private set; }
+        /// <summary>
+        /// Model in the MVC sense. It stores the colour data we want to set and update our view with when the colour changes.
+        /// </summary>
+        public IColouredPart Model { get; private set; }
 
-        public void SetModel(IHasModelPartColour component)
+        public void SetModel(IColouredPart component)
         {
-            Model?.ColourData.Unsubscribe(nameof(ModelPartColouring.Colour), OnModelChanged);
+            Model?.ColourData.Unsubscribe(nameof(ModelPartColourData.Colour), OnModelChanged);
             Model = component;
-            Model?.ColourData.SubscribeAndCall(nameof(ModelPartColouring.Colour), OnModelChanged);
+            Model?.ColourData.SubscribeAndCall(nameof(ModelPartColourData.Colour), OnModelChanged);
         }
         /// <summary>
-        /// Update the model with the colour values in the view
+        /// Update the model with the colour values in the view. The model will then notify us that the colour changed and will be picked up by <see cref="OnModelChanged"/>
         /// </summary>
         private void OnUserInput()
         {
             SetColour(new Color(R, G, B));
         }
         /// <summary>
-        /// Update the view with the model colour
+        /// Update the view with the model colour.
         /// </summary>
         private void OnModelChanged()
         {
@@ -149,7 +161,7 @@ namespace Parts
         private void SetColour(Color colour)
         {
             if (Model == null) return;
-            ModelPartColouring partColouring = Model.ColourData;
+            ModelPartColourData partColouring = Model.ColourData;
             if (partColouring == null) return;
             partColouring.Colour = colour;
         }

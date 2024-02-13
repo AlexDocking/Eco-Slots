@@ -2,29 +2,26 @@
 {
     public static class PartsContainerFactory
     {
-        public static IPartsContainerFactory Factory { get; set; } = new DefaultPartsContainerFactory();
+        /// <summary>
+        /// Create a new empty parts container. New slots can be added before it is initialised.
+        /// </summary>
+        /// <returns></returns>
         public static IPartsContainer Create()
         {
-            IPartsContainer partsContainer = Factory.Create();
-
+            IPartsContainer partsContainer = new PartsContainer();
             return partsContainer;
         }
+        /// <summary>
+        /// Create a new parts container, populating it with new slots based on the slot definitions in the schema.
+        /// </summary>
         public static IPartsContainer Create(IPartsContainerSchema schema)
         {
-            IPartsContainer partsContainer = Factory.Create();
-            for (int i = 0; i < schema.SlotSchemas.Count; i++)
+            IPartsContainer partsContainer = new PartsContainer();
+            for (int i = 0; i < schema.SlotDefinitions.Count; i++)
             {
-                partsContainer.TryAddSlot(schema.SlotSchemas[i].MakeSlotFromDefinition(), null);
+                partsContainer.TryAddSlot(schema.SlotDefinitions[i].MakeSlotFromDefinition(), null);
             }
             return partsContainer;
         }
-    }
-    public interface IPartsContainerFactory
-    {
-        IPartsContainer Create();
-    }
-    public class DefaultPartsContainerFactory : IPartsContainerFactory
-    {
-        public IPartsContainer Create() => new PartsContainer();
     }
 }

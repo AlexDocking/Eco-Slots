@@ -17,17 +17,20 @@ using static Eco.Gameplay.Items.AuthorizationInventory;
 
 namespace Parts
 {
+    /// <summary>
+    /// A parts slot that has an inventory with one stack that holds at most one item.
+    /// TODO: ensure it cannot stack above 1.
+    /// </summary>
     [Serialized]
     public class InventorySlot : ISlot, IController, INotifyPropertyChanged
     {
-        [Serialized, SyncToView] public string Name { get => GenericDefinition?.Name ?? string.Empty; set { } }
+        [Serialized, SyncToView] public string Name { get => SlotDefinition?.Name ?? string.Empty; set { } }
         [Serialized, SyncToView, NewTooltip(Eco.Shared.Items.CacheAs.Disabled)] public Inventory Inventory
         {
             get => inventory; private set => SetInventory(value);
         }
         [SyncToView]
         public IPart Part => part;
-
         public IPartsContainer PartsContainer { get; private set; }
         /// <summary>
         /// Called whenever the slot inventory changes
@@ -37,7 +40,6 @@ namespace Parts
         /// Called whenever one of the part's properties e.g. colour is changed
         /// </summary>
         public ThreadSafeAction<ISlot, IPart, IPartProperty> PartPropertyChangedEvent { get; } = new ThreadSafeAction<ISlot, IPart, IPartProperty>();
-        public ThreadSafeAction<ISlot> AddableOrRemovableChangedEvent { get; } = new ThreadSafeAction<ISlot>();
         /// <summary>
         /// Called whenever the accepted range of parts to add or remove changes
         /// </summary>
@@ -64,19 +66,23 @@ namespace Parts
                 if (value.TryGetComponent(out PublicStorageComponent component))
                 {
                     Inventory storage = component.Storage;
-                    bool trackEmptyStorage = GenericDefinition.RestrictionsToAddPart.Any(restrictionToAdd => restrictionToAdd is RequiresEmptyPublicStorageToAddSlotRestriction) || GenericDefinition.RestrictionsToRemovePart.Any(restrictionToRemove => restrictionToRemove is RequiresEmptyPublicStorageToRemoveSlotRestriction);
+                    bool trackEmptyStorage = SlotDefinition.RestrictionsToAddPart.Any(restrictionToAdd => restrictionToAdd is RequiresEmptyPublicStorageToAddSlotRestriction) || SlotDefinition.RestrictionsToRemovePart.Any(restrictionToRemove => restrictionToRemove is RequiresEmptyPublicStorageToRemoveSlotRestriction);
                     if (storage != null && trackEmptyStorage)
                     {
                         RequireEmptyStorageSlotStatus = new RequireEmptyStorageSlotStatus(storage);
                     }
                 }
-                SetInventoryRequirementsOnWorldObject();
+                if (WorldObject != null) SlotRestrictionManager.CreateInventoryRestrictionsBasedOnWorldObject(WorldObject);
             }
         }
         private void OnSlotStatusChanged()
         {
             SlotStatusChanged.Invoke(this);
         }
+        /// <summary>
+        /// If it is required that the storage be empty in order to add or remove the part, this tracks its status.
+        /// TODO: Refactor. What if a slot wanted something different such as only allowing parts to added when not empty but not allow removal?
+        /// </summary>
         public RequireEmptyStorageSlotStatus RequireEmptyStorageSlotStatus
         {
             get => requireEmptyStorageSlotStatus; set
@@ -86,56 +92,16 @@ namespace Parts
             }
         }
 
-        private void SetInventoryRequirementsOnWorldObject()
-        {
-
-            if (WorldObject == null) return;
-            WorldObject.TryGetComponent(out PublicStorageComponent publicStorage);
-            Inventory storage = publicStorage?.Storage;
-            if (GenericDefinition.RestrictionsToAddPart.Any(restrictionToAdd => restrictionToAdd is RequiresEmptyPublicStorageToAddSlotRestriction))
-            {
-                RequireEmptyStorageToAddRestriction restriction = new RequireEmptyStorageToAddRestriction() { IsEnabled = true };
-                if (storage != null)
-                {
-                    restriction.InventorySet.Inventories.Add(storage);
-                    Inventory.AddInvRestriction(restriction);
-                }
-            }
-            if (GenericDefinition.RestrictionsToRemovePart.Any(restrictionToRemove => restrictionToRemove is RequiresEmptyPublicStorageToRemoveSlotRestriction))
-            {
-                var restriction = new RequireEmptyStorageToRemoveRestriction() { IsEnabled = true };
-                if (storage != null)
-                {
-                    restriction.InventorySet.Inventories.Add(storage);
-                    Inventory.AddInvRestriction(restriction);
-                }
-            }
-        }
-
         private InventorySlot()
         {
             Inventory defaultInventory = new AuthorizationInventory(1, AuthorizationFlags.AuthedMayAdd | AuthorizationFlags.AuthedMayRemove);
+            SlotRestrictionManager = new InventorySlotRestrictionManager(this); 
             SetInventory(defaultInventory);
-            SlotRestrictionManager = new InventorySlotRestrictionManager(this, Inventory);
-            GenericDefinition = new RegularSlotDefinition();
+            SlotDefinition = new DefaultInventorySlotDefinition();
         }
         public InventorySlot(ISlotDefinition slotDefinition) : this()
         {
-            GenericDefinition = slotDefinition;
-            if (!slotDefinition.CanPartEverBeRemoved)
-            {
-                NoRemoveRestriction restriction = new NoRemoveRestriction() { IsEnabled = true };
-                Inventory.AddInvRestriction(restriction);
-            }
-            if (slotDefinition.CanPartEverBeAdded)
-            {
-                if (slotDefinition.RestrictionsToAddPart.FirstOrDefault(restrictionToAdd => restrictionToAdd is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
-                {
-                    EditableSpecificItemTypesRestriction restriction = new EditableSpecificItemTypesRestriction() { IsEnabled = true };
-                    restriction.AllowedItemTypes.AddRange(limitedTypeSlotRestriction.AllowedTypes);
-                    Inventory.AddInvRestriction(restriction);
-                }
-            }
+            SlotDefinition = slotDefinition;
         }
 
         private void SetInventory(Inventory newInventory)
@@ -144,6 +110,7 @@ namespace Parts
             this.inventory?.OnChanged.Remove(OnInventoryChanged);
             newInventory?.SetOwner(WorldObject);
             this.inventory = newInventory;
+            if (WorldObject != null) SlotRestrictionManager.CreateInventoryRestrictionsBasedOnWorldObject(WorldObject);
             newInventory?.OnChanged.AddAndCall(OnInventoryChanged, null);
         }
         public void Initialize(WorldObject worldObject, IPartsContainer partsContainer)
@@ -199,7 +166,7 @@ namespace Parts
         public Result CanAcceptAnyPart() => SlotRestrictionManager.CanAcceptAnyPart();
         public Result CanRemovePart()
         {
-            if (!SlotRestrictionManager.CanRemovePart(part, out var failureReasons)) return Result.Fail(failureReasons.NewlineList());
+            if (!SlotRestrictionManager.CanRemovePart(part, out List<LocString> failureReasons)) return Result.Fail(failureReasons.NewlineList());
             return Result.Succeeded;
         }
 
@@ -212,16 +179,16 @@ namespace Parts
         private WorldObjectHandle worldObjectHandle = null;
         private Inventory inventory = new AuthorizationInventory(1);
         private RequireEmptyStorageSlotStatus requireEmptyStorageSlotStatus;
-        public virtual ISlotDefinition GenericDefinition { get; }
+        public virtual ISlotDefinition SlotDefinition { get; }
 
         public LocString Tooltip()
         {
             IPart part = Part;
             LocStringBuilder tooltipBuilder = new LocStringBuilder();
-            tooltipBuilder.AppendLine(GenericDefinition.TooltipTitle());
+            tooltipBuilder.AppendLine(SlotDefinition.TooltipTitle());
             if (part == null)
             {
-                tooltipBuilder.Append(GenericDefinition.TooltipContent());
+                tooltipBuilder.Append(SlotDefinition.TooltipContent());
                 return tooltipBuilder.ToLocString();
             }
 

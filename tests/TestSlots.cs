@@ -78,9 +78,9 @@ namespace Parts.Tests
         public static void ShouldSetPartCorrectly()
         {
             ISlot slot = TestUtility.CreateSlot();
-            WorldObject worldObject = new TestWorldObject();
-            PartsContainer partsContainer = new PartsContainer();
-            slot.Initialize(worldObject, partsContainer);
+            //WorldObject worldObject = new TestWorldObject();
+            //PartsContainer partsContainer = new PartsContainer();
+            //slot.Initialize(worldObject, partsContainer);
 
             TestPart item = new TestPart();
             int calls = 0;
@@ -199,11 +199,11 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldBeAbleToReceivePartTypesBasedOnSlotDefinition()
         {
-            ISlotDefinition slotDefinition = new RegularSlotDefinition()
+            ISlotDefinition slotDefinition = new DefaultInventorySlotDefinition()
             {
                 AllowedItemTypes = new[] { typeof(TestPart) }
             };
-            ISlot slot = TestUtility.CreateInventorySlot(slotDefinition);
+            ISlot slot = TestUtility.CreateAndInitializeInventorySlot(slotDefinition);
             IPart validPart = new TestPart();
             DebugUtils.Assert(slot.CanAcceptPart(validPart), "Slot should accept part of valid type as set by the slot definition");
             IPart invalidPart = new TestPart2();
@@ -213,21 +213,21 @@ namespace Parts.Tests
         [ChatCommand("Test", ChatAuthorizationLevel.Developer)]
         public static void ShouldBeAbleToRemovePartIfOptionalInSlotDefinition()
         {
-            ISlotDefinition optionalSlotDefinition = new RegularSlotDefinition()
+            ISlotDefinition optionalSlotDefinition = new DefaultInventorySlotDefinition()
             {
                 Optional = true
             };
-            ISlot optionalSlot = TestUtility.CreateInventorySlot(optionalSlotDefinition);
+            ISlot optionalSlot = TestUtility.CreateAndInitializeInventorySlot(optionalSlotDefinition);
             IPart part = new TestPart();
             DebugUtils.Assert(!optionalSlot.CanRemovePart(), "If slot has no part then nothing can be removed");
             optionalSlot.SetPart(part);
             DebugUtils.Assert(optionalSlot.CanRemovePart(), "Slot is optional so the part should be allowed to be removed");
 
-            ISlotDefinition nonOptionalSlotDefinition = new RegularSlotDefinition()
+            ISlotDefinition nonOptionalSlotDefinition = new DefaultInventorySlotDefinition()
             {
                 Optional = false
             };
-            ISlot nonOptionalSlot = TestUtility.CreateInventorySlot(nonOptionalSlotDefinition);
+            ISlot nonOptionalSlot = TestUtility.CreateAndInitializeInventorySlot(nonOptionalSlotDefinition);
             DebugUtils.Assert(!nonOptionalSlot.CanRemovePart(), "If slot has no part then nothing can be removed");
             nonOptionalSlot.SetPart(part);
             DebugUtils.Assert(!nonOptionalSlot.CanRemovePart(), "Slot is not optional so the part should be not allowed to be removed");
@@ -238,7 +238,7 @@ namespace Parts.Tests
         {
             IPartsContainer partsContainer = PartsContainerFactory.Create(new PartsContainerSchema(new[]
             {
-                new RegularSlotDefinition()
+                new DefaultInventorySlotDefinition()
                 {
                     RequiresEmptyStorageToChangePart = true,
                     Optional = true

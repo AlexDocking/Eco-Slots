@@ -14,93 +14,70 @@ using Eco.Gameplay.Systems.NewTooltip.TooltipLibraryFiles;
 
 namespace Parts
 {
+    /// <summary>
+    /// You can add your own tooltip methods to <see cref="TooltipsByType"></see> for your new part property types.
+    /// </summary>
     [TooltipLibrary]
     public static class ModTooltipLibrary
     {
+        /// <summary>
+        /// Tooltip part generators by part property type.
+        /// You can make a description of a part's property that will appear in the object's tooltip section of installed parts,
+        /// so long as the slot the part is in does not choose to present itself differently.
+        /// For a part property for colour you can add a function along these lines:
+        /// <code>
+        /// <see cref="TooltipsByType"/>.Add(typeof(IColouredPart), (IColouredPart part) => Localizer.DoStr("Colour: ") + part.ColourData.Colour.HexCode); 
+        /// </code>
+        /// For an InventorySlot called 'Door' that contains a part 'Flat Door', the tooltip when you hover over the World Object instance's name will present like this:
+        /// <code>
+        /// <b>Slot: Door</b><br></br>
+        /// Contains: <b>Flat Door</b><br></br>
+        /// Colour: #123456     &lt;-- The slot tooltip asks for a description of the parts' properties, which returns this line. This is the line you just added
+        /// </code>
+        /// </summary>
         public static ThreadSafeDictionary<Type, Func<object, LocString>> TooltipsByType { get; } = new ThreadSafeDictionary<Type, Func<object, LocString>>();
-        //public static ThreadSafeDictionary<Type, Func<object, LocString>> GenericTooltipsByType { get; } = new ThreadSafeDictionary<Type, Func<object, LocString>>();
         public static void Initialize()
         {
-            TooltipsByType.Add(typeof(ModelPartColouring), o => (o as ModelPartColouring).ColourDataTooltip());
-            TooltipsByType.Add(typeof(ICustomStorageSize), o => (o as ICustomStorageSize).CustomStorageSizeTooltip());
-            //TooltipsByType.Add(typeof(IHasCustomStorageSize), o => (o as IHasCustomStorageSize).CustomStorageSizeComponentTooltip());
-
-            //GenericTooltipsByType.Add(typeof(IHasCustomStorageSize), o => SpecificCustomStorageSizeComponentTooltip((o as IHasCustomStorageSize)));
-            //GenericTooltipsByType.Add(typeof(IHasModelPartColour), o => GenericHasModelPartColourTypeTooltip((o as IHasModelPartColour)));
+            TooltipsByType.Add(typeof(ModelPartColourData), o => ((ModelPartColourData)o).ColourDataTooltip());
+            TooltipsByType.Add(typeof(ICustomStorageSize), o => ((ICustomStorageSize)o).CustomStorageSizeTooltip());
 
             PartNotifications.PartPropertyChangedEventGlobal.Add((part, property) => { if (part is IController controller) ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(SpecificHasModelPartColourTooltip), null, controller); });
 
-            ModelPartColouring.OnColourChangedGlobal.Add(colouring => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColouringTooltip), null, colouring));
+            ModelPartColourData.OnColourChangedGlobal.Add(colouring => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(ModelPartColouringTooltip), null, colouring));
             PartsContainer.PartsContainerChangedEventGlobal.Add(partsContainer
                 => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(CurrentPartsListDescription), null, partsContainer));
             PartsContainer.PartsContainerChangedEventGlobal.Add(partsContainer
                 => ServiceHolder<ITooltipSubscriptions>.Obj.MarkTooltipPartDirty(nameof(GenericPartsContainerWorldObjectItemTooltip), null, partsContainer)); 
         }
         /// <summary>
-        /// Generates tooltip on items which derive IHasModelPartColourComponent
+        /// Generates the tooltip for an item's colour data, if that item is not the generic item.
         /// </summary>
-        /// <param name="part"></param>
-        /// <returns></returns>
-        [TooltipAffectedBy(typeof(IHasModelPartColour), nameof(IHasModelPartColour.ColourData), nameof(ModelPartColouring.Colour))]
-        [NewTooltip(CacheAs.Instance, 20, overrideType: typeof(IHasModelPartColour))]
-        public static LocString SpecificHasModelPartColourTooltip(this IHasModelPartColour part) => part != Item.Get(part.GetType()) ? new TooltipSection(part.ColourData.ModelPartColouringTooltip()) : LocString.Empty;
-
-        /*[NewTooltip(CacheAs.Instance, 20, overrideType: typeof(IHasModelPartColour))]
-        public static LocString GenericHasModelPartColourTypeTooltip(this IHasModelPartColour part)
-        {
-            if (part != Item.Get(part.GetType())) return LocString.Empty;
-            return new TooltipSection(Localizer.DoStr("Colour"), Localizer.DoStr("This part can be coloured"));
-        }*/
+        [TooltipAffectedBy(typeof(IColouredPart), nameof(IColouredPart.ColourData), nameof(ModelPartColourData.Colour))]
+        [NewTooltip(CacheAs.Instance, 20, overrideType: typeof(IColouredPart))]
+        public static LocString SpecificHasModelPartColourTooltip(this IColouredPart part) => part != Item.Get(part.GetType()) ? new TooltipSection(part.ColourData.ModelPartColouringTooltip()) : LocString.Empty;
 
         /// <summary>
         /// Generates tooltip on items which derive IHasCustomStorageSize
         /// </summary>
         /// <param name="part"></param>
         /// <returns></returns>
-        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IHasCustomStorageSize))]
+        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(IPartWithCustomStorageSize))]
         public static LocString GenericCustomStorageSizeComponentTooltip(Type partType)
         {
-            if (Item.Get(partType) is not IHasCustomStorageSize part) return LocString.Empty;
-            //if (part != Item.Get(part.GetType())) return LocString.Empty;
+            if (Item.Get(partType) is not IPartWithCustomStorageSize part) return LocString.Empty;
             return new TooltipSection(Localizer.DoStr("Storage Size"), part.StorageSizeModifier.CustomStorageSizeTooltip());
         }
 
-        /*[NewTooltip(CacheAs.Instance, 20, overrideType: typeof(IPart))]
-        public static LocString PartTypeTooltip(this IPart part)
-        {
-            Log.WriteLine(Localizer.DoStr("Looking for part " + part.DisplayName));
-            if (part is Item && part != Item.Get(part.GetType())) return LocString.Empty;
-            //if (type.DerivesFrom(typeof(IPart)) && type.DerivesFrom(typeof(Item)))
-            {
-                //IPart part = (IPart)Item.Get(type);
-                Log.WriteLine(Localizer.DoStr("Found part type tooltip:" + part.DisplayName + "," + (part != null)));
-
-                LocStringBuilder tooltipBuilder = new LocStringBuilder();
-                foreach(var partWithPropertyInterface in part.GetType().GetInterfaces().Where(interfaceType => interfaceType.DerivesFrom(typeof(IPart)) && interfaceType != typeof(IPart)))
-                {
-                    Log.WriteLine(Localizer.DoStr("Found property:" + partWithPropertyInterface.Name));
-                    if (TooltipsByType.TryGetValue(partWithPropertyInterface, out Func<object, LocString> tooltipMethod))
-                    {
-                        tooltipBuilder.AppendLine(tooltipMethod(part));
-                    }
-                }
-                return tooltipBuilder.ToLocString();
-            }
-            return LocString.Empty;
-        }*/
-
         /// <summary>
-        /// Tooltip part on a parts container to show the colour info for one of its installed parts
+        /// Tooltip part shown by a slot to show the colour info for its installed part, if that part has a custom storage size.
         /// </summary>
-        /// <param name="colourData"></param>
-        /// <returns></returns>
         public static LocString CustomStorageSizeTooltip(this ICustomStorageSize customStorageSize)
         {
             return Localizer.Do($"Increases the number of storage slots by {Text.Info(customStorageSize.NumberOfAdditionalSlots)}").Style(Text.Styles.Info);
         }
 
-        [NewTooltip(CacheAs.Instance, 180, overrideType: typeof(IPartsContainerWorldObject))]
-        public static LocString GenericPartsContainerWorldObjectItemTooltip(this IPartsContainerWorldObject partsContainerItem)
+        [NewTooltip(CacheAs.Instance, 180, overrideType: typeof(IPartsContainerWorldObjectItem))]
+        public static LocString GenericPartsContainerWorldObjectItemTooltip(this IPartsContainerWorldObjectItem partsContainerItem)
         {
             if (partsContainerItem != Item.Get(partsContainerItem.GetType()))
             {
@@ -110,48 +87,40 @@ namespace Parts
                     return LocString.Empty;
                 }
             }
-            //if (worldObjectType.DerivesFrom(typeof(IPartsContainerWorldObject)) && worldObjectType.DerivesFrom(typeof(Item)))
-            {
-                //IPartsContainerWorldObject partsContainerItem = (IPartsContainerWorldObject)Item.Get(worldObjectType);
-                //ItemPersistentData persistentData = (partsContainerItem as IPersistentData)?.PersistentData as ItemPersistentData;
-                //if (persistentData.TryGetPersistentData<PartsContainerComponent>(out object partsContainer) && partsContainer != null) return LocString.Empty;
-                if (partsContainerItem.GetPartsContainerMigrator() is not RegularPartsContainerMigrator migrator) return LocString.Empty;
-                IPartsContainerSchema partsContainerSchema = new PartsContainerSchema(migrator.SlotDefinitions);
-                return partsContainerSchema.Tooltip();
-            }
-            //return LocString.Empty;
+            //TODO: separate the container schema from the migrator
+            if (partsContainerItem.GetPartsContainerMigrator() is not DefaultPartsContainerMigrator migrator) return LocString.Empty;
+            IPartsContainerSchema partsContainerSchema = new PartsContainerSchema(migrator.SlotDefinitions);
+            return partsContainerSchema.Tooltip();
         }
 
         /// <summary>
         /// Generates tooltip for ModelPartColouring on an item
         /// </summary>
-        /// <param name="colourData"></param>
-        /// <returns></returns>
-        [TooltipAffectedBy(typeof(ModelPartColouring), nameof(ModelPartColouring.Colour))]
-        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(ModelPartColouring))]
-        public static LocString ModelPartColouringTooltip(this ModelPartColouring colourData) => new TooltipSection(Localizer.DoStr("Colour Data"), colourData.ColourDataTooltip());
+        [TooltipAffectedBy(typeof(ModelPartColourData), nameof(ModelPartColourData.Colour))]
+        [NewTooltip(CacheAs.Instance, 150, overrideType: typeof(ModelPartColourData))]
+        public static LocString ModelPartColouringTooltip(this ModelPartColourData colourData) => new TooltipSection(Localizer.DoStr("Colour Data"), colourData.ColourDataTooltip());
 
         /// <summary>
-        /// Tooltip part on a parts container to show the colour info for one of its installed parts
+        /// Tooltip part on a parts container tooltip to show the colour info for one of its installed parts
         /// </summary>
-        /// <param name="colourData"></param>
-        /// <returns></returns>
-        public static LocString ColourDataTooltip(this ModelPartColouring colourData)
+        public static LocString ColourDataTooltip(this ModelPartColourData colourData)
         {
             return Localizer.DoStr("Colour").Style(Text.Styles.Info) + ": " + CopyColourTooltip(colourData.Colour);
         }
 
-        private static LocString CopyColourTooltip(Color colour)
+        /// <summary>
+        /// Shows a coloured box that if you click on will copy the colour's hex code to the clipboard.
+        /// </summary>
+        public static LocString CopyColourTooltip(Color colour)
         {
             string hexRGB = ColorUtility.RGBHex(colour.HexRGBA);
             return Localizer.NotLocalized($"<mark={ColorUtility.RGBHex(colour.HexRGBA)}>{Text.CopyToClipBoard("Colour", Localizer.NotLocalizedStr(hexRGB), hexRGB)}</mark> ({hexRGB})");
         }
 
         /// <summary>
-        /// Generates tooltip for PartsContainer
+        /// Generates a tooltip for PartContainerComponent's persistent data that shows all the slots.
+        /// The slots generate their own descriptions about themselves and what part they contain.
         /// </summary>
-        /// <param name="partsContainer"></param>
-        /// <returns></returns>
         [TooltipAffectedBy(typeof(IPartsContainer), nameof(IPartsContainer.NewPartInSlotEvent))]
         [NewTooltip(CacheAs.Instance, 180, overrideType: typeof(IPartsContainer), flags: TTFlags.ClearCacheForAllUsers)]
         public static LocString CurrentPartsListDescription(this IPartsContainer partsContainer)
@@ -165,9 +134,12 @@ namespace Parts
             return tooltip;
         }
 
+        /// <summary>
+        /// Generate a tooltip section of all the part's properties e.g. colour, storage modifiers etc.
+        /// </summary>
         public static LocString PartTooltip(IPart part)
         {
-            var partProperties = from member in part.GetType().AllMembers()
+            IEnumerable<object> partProperties = from member in part.GetType().AllMembers()
                                  let memberType = member.GetValueType()
                                  where memberType.DerivesFrom<IPartProperty>()
                                  select member.GetMemberValue(part);

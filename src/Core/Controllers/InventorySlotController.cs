@@ -10,13 +10,23 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-namespace Parts
+namespace Parts.UI
 {
+    /// <summary>
+    /// Presents a view for an InventorySlot, which can be shown in a list by the PartSlotsUIComponent.
+    /// It looks like:
+    /// <code>
+    /// Slot Name
+    /// Part Name
+    /// [Inventory]
+    /// Description of valid part types</code>
+    /// </summary>
     [Serialized, AutogenClass]
     [UITypeName("PropertyPage")]
-    public class SlotViewController : IController, INotifyPropertyChanged
+    public sealed class InventorySlotController : IController, INotifyPropertyChanged
     {
-        private readonly string PreventIcon = "\n<icon name=\"ServerErrors\" type=\"nobg\">";
+        //The 'prevent' icon with the hand in the red octogon
+        private static string PreventIcon => Text.Icon("ServersError", "", "nobg");
         [SyncToView, Autogen]
         [UITypeName("GeneralHeader")]
         public string NameDisplay
@@ -26,12 +36,13 @@ namespace Parts
                 LocStringBuilder locStringBuilder = new LocStringBuilder();
                 locStringBuilder.Append(Slot.Name);
 
-                if (Slot.GenericDefinition.CanPartEverBeAdded && Slot.GenericDefinition.CanPartEverBeRemoved) locStringBuilder.JoinWithSpaceIfNeeded(Localizer.DoStr("[Optional]"));
-                if (Slot.Part != null && Slot.GenericDefinition.CanPartEverBeRemoved)
+                if (Slot.SlotDefinition.CanPartEverBeAdded && Slot.SlotDefinition.CanPartEverBeRemoved) locStringBuilder.JoinWithSpaceIfNeeded(Localizer.DoStr("[Optional]"));
+                if (Slot.Part != null && Slot.SlotDefinition.CanPartEverBeRemoved)
                 {
                     Result canRemovePart = Slot.CanRemovePart();
                     if (!canRemovePart)
                     {
+                        locStringBuilder.AppendLine();
                         locStringBuilder.Append(PreventIcon + canRemovePart.Message.Style(Text.Styles.ErrorLight));
                     }
                 }
@@ -40,6 +51,7 @@ namespace Parts
                     Result canAddPart = Slot.CanAcceptAnyPart();
                     if (!canAddPart)
                     {
+                        locStringBuilder.AppendLine();
                         locStringBuilder.Append(PreventIcon + canAddPart.Message.Style(Text.Styles.ErrorLight));
                     }
                 }
@@ -62,7 +74,7 @@ namespace Parts
         {
             get
             {
-                if (Slot?.GenericDefinition.RestrictionsToAddPart.FirstOrDefault(restriction => restriction is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
+                if (Slot?.SlotDefinition.RestrictionsToAddPart.FirstOrDefault(restriction => restriction is LimitedTypeSlotRestriction) is LimitedTypeSlotRestriction limitedTypeSlotRestriction)
                 {
                     IEnumerable<Item> allowedItems = limitedTypeSlotRestriction.AllowedTypes.Select(type => Item.Get(type)).NonNull();
                     return Localizer.DoStr("Accepts").AppendSpaceIfSet() + allowedItems.Select(item => item.UILink()).CommaList();
@@ -72,7 +84,7 @@ namespace Parts
         }
 
         public InventorySlot Slot { get; init; }
-        public SlotViewController(InventorySlot slot)
+        public InventorySlotController(InventorySlot slot)
         {
             Slot = slot;
             Slot.NewPartInSlotEvent.Add(() => { this.Changed(nameof(PartName)); this.Changed(nameof(SlotInventory)); });

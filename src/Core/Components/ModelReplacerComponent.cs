@@ -1,10 +1,6 @@
 ﻿using Eco.Core.Controller;
-using Eco.Core.Utils;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Utils;
-using Eco.Shared.Localization;
-using Eco.Shared.Networking;
-using Eco.Shared.Pools;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
 using Parts.Kitchen;
@@ -16,9 +12,10 @@ using System.Linq;
 namespace Parts
 {
     /// <summary>
-    /// Send model part names to the client to change the configuration the world object model
+    /// Send model part names to the client to change the configuration the world object model.
+    /// TODO: remove coupling with kitchen cupboards so that other world objects can define their own set of mesh replacements.
     /// </summary>
-    public class ModelReplacementViewController : IController, INotifyPropertyChanged
+    public class ModelReplacer : IController, INotifyPropertyChanged
     {
         KitchenCupboardModelReplacements ModelReplacements { get; } = new KitchenCupboardModelReplacements();
         public WorldObject WorldObject { get; private set; }
@@ -48,6 +45,10 @@ namespace Parts
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
     }
+    /// <summary>
+    /// Sets the bool visibility states of different parts of the GameObject for a kitchen cupboard with interchangeable doors.
+    /// TODO: refactor into interface.
+    /// </summary>
     public class KitchenCupboardModelReplacements 
     {
         public void SetEnabledParts(WorldObject worldObject, IPartsContainer container)
@@ -59,13 +60,16 @@ namespace Parts
             worldObject.SetAnimatedState("No Door", parts.None(part => part is KitchenCabinetFlatDoorItem || part is KitchenCupboardRaisedPanelDoorItem));
         }
     }
+    /// <summary>
+    /// Listen for changes in the parts container so that the game object can be kept in sync with which parts are installed.
+    /// The object may have different models or parts of models depending on the state of the installed parts, such as replacing one style of cabinet door for another.
+    /// </summary>
     [Serialized]
     [NoIcon]
-    [RequireComponent(typeof(ModelPartColourComponent))]
     [RequireComponent(typeof(PartsContainerComponent))]
     public class ModelReplacerComponent : WorldObjectComponent, IHasClientControlledContainers, INotifyPropertyChanged
     {
-        ModelReplacementViewController view = null;
+        ModelReplacer view = null;
         private IPartsContainer PartsContainer { get; set; }
         public override void Initialize()
         {
@@ -79,7 +83,7 @@ namespace Parts
         }
         private void BuildViews()
         {
-            view = new ModelReplacementViewController();
+            view = new ModelReplacer();
             view.SetModel(Parent, PartsContainer);
         }
     }

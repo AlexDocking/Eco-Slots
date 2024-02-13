@@ -24,7 +24,9 @@ namespace Parts
         private static WeakKeyConcurrentDictionary<IPart, PropertyChangedEventHandler> Listeners { get; } = new WeakKeyConcurrentDictionary<IPart, PropertyChangedEventHandler>();
         /// <summary>
         /// Set up a subscription for the property to call the necessary events when it changes.
-        /// This elimates the need for each part to define a PropertyChangedEventHandler to call PartPropertyChangedEvent(/Global), and to change over the subscription to the new object when the property changes, such as when loading persistent data.
+        /// This elimates the need for each part to define a PropertyChangedEventHandler to call PartPropertyChangedEvent(/Global), and to change over the subscription to the new object when the property instance changes, such as when loading persistent data.
+        /// For example, ModelPartColouring is a part property which needs to notify its parent part when the colour changes.
+        /// Without Fody this subscription has to be set up manually, and this saves most of the boilerplate code from the part classes.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="part"></param>
@@ -32,7 +34,7 @@ namespace Parts
         /// <param name="existingProperty"></param>
         public static void SetProperty<T>(this IPart part, T newProperty, ref T existingProperty) where T : IPartProperty
         {
-            if (!Listeners.TryGetValue(part, out var propertyChangedEventHandler))
+            if (!Listeners.TryGetValue(part, out PropertyChangedEventHandler propertyChangedEventHandler))
             {
                 propertyChangedEventHandler = (object sender, PropertyChangedEventArgs args) =>
                 {

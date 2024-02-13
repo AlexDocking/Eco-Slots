@@ -3,6 +3,9 @@ using System.Linq;
 
 namespace Parts
 {
+    /// <summary>
+    /// Helper class for colour hex codes without an alpha channel.
+    /// </summary>
     public static class ColorUtility
     {
         public static string HexRGB(this Color colour) => RGBHex(colour.HexRGBA);

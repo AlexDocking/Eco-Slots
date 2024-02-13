@@ -1,10 +1,8 @@
 ﻿using Eco.Core.Controller;
 using Eco.Core.Utils;
 using Eco.Gameplay.Objects;
-using Eco.Shared.Localization;
-using Eco.Shared.Networking;
 using Eco.Shared.Serialization;
-using Eco.Shared.Utils;
+using Parts.Effects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,14 +10,16 @@ using System.Linq;
 namespace Parts
 {
     /// <summary>
-    /// WorldObjectComponent to send all part colours to the client
+    /// WorldObjectComponent to send all part colours to the client.
+    /// TODO: likely refactor this with <see cref="ModelReplacerComponent"/>, and possibly <see cref="PartColoursUIComponent"/> and <see cref="Parts.UI.SlotsUIComponent"/>
+    /// because they are all very similar: 'create an object for each slot that is responsible for interacting with the world in some way'.
     /// </summary>
     [Serialized]
     [NoIcon]
     [RequireComponent(typeof(PartsContainerComponent))]
     public class ModelPartColourComponent : WorldObjectComponent
     {
-        private IDictionary<ISlot, ModelColourSetterViewController> partViews = new ThreadSafeDictionary<ISlot, ModelColourSetterViewController>();
+        private IDictionary<ISlot, ModelColourSetter> partViews = new ThreadSafeDictionary<ISlot, ModelColourSetter>();
         private IPartsContainer PartsContainer { get; set; }
 
         public override void Initialize()
@@ -35,9 +35,9 @@ namespace Parts
         }
         private void OnPartChanged(ISlot slot)
         {
-            if (!partViews.TryGetValue(slot, out ModelColourSetterViewController viewForSlot)) return;
+            if (!partViews.TryGetValue(slot, out ModelColourSetter viewForSlot)) return;
 
-            IHasModelPartColour colourComponent = slot.Part as IHasModelPartColour;
+            IColouredPart colourComponent = slot.Part as IColouredPart;
             viewForSlot.SetModel(Parent, colourComponent);
             
         }
@@ -49,9 +49,9 @@ namespace Parts
             {
                 ISlot slot = slots[i];
                 IPart part = slot.Part;
-                IHasModelPartColour partColourComponent = part as IHasModelPartColour;
+                IColouredPart partColourComponent = part as IColouredPart;
 
-                ModelColourSetterViewController partView = new ModelColourSetterViewController();
+                ModelColourSetter partView = new ModelColourSetter();
                 partView.SetModel(Parent, partColourComponent);
                 partViews.Add(slot, partView);
             }

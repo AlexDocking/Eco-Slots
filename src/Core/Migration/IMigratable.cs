@@ -1,9 +1,8 @@
-﻿using Eco.Shared.Serialization;
+﻿/// Outline of a migration system for mods, since Eco's migration system is not suitable when a mod needs to update between Eco versions.
+/// Proper migration with versioning would be a future work.
+/// This file is just an outline of such a system: none of these classes are used yet.
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Parts
 {

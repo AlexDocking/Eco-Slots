@@ -5,13 +5,14 @@ using Eco.Gameplay.Objects;
 using Eco.Shared.Serialization;
 using Parts;
 using Parts.Migration;
+using Parts.UI;
 using Parts.Vehicles;
 using System;
 
 namespace Parts.Vehicles
 {
     [Serialized]
-    public class StandardTruckBedItem : Item, IPart, IHasCustomStorageSize
+    public class StandardTruckBedItem : Item, IPart, IPartWithCustomStorageSize
     {
         private ICustomStorageSize storageSizeModifier;
 
@@ -26,7 +27,7 @@ namespace Parts.Vehicles
         string IPart.DisplayName => "Standard Truck Bed";
     }
     [Serialized]
-    public class BigTruckBedItem : Item, IPart, IHasCustomStorageSize
+    public class BigTruckBedItem : Item, IPart, IPartWithCustomStorageSize
     {
         private ICustomStorageSize storageSizeModifier;
 
@@ -46,11 +47,11 @@ namespace Eco.Mods.TechTree
 {
     [RequireComponent(typeof(PartsContainerComponent))]
     [RequireComponent(typeof(StorageSizeModifierComponent))]
-    [RequireComponent(typeof(PartSlotsUIComponent))]
+    [RequireComponent(typeof(SlotsUIComponent))]
     public partial class TruckObject
     {
     }
-    public partial class TruckItem : IPartsContainerWorldObject
+    public partial class TruckItem : IPartsContainerWorldObjectItem
     {
         public IPartsContainerMigrator GetPartsContainerMigrator() => new TruckMigrator();
     }

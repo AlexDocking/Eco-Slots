@@ -5,6 +5,7 @@ using Eco.Gameplay.Systems.Messaging.Chat.Commands;
 using Eco.Shared.Utils;
 using Eco.Shared.View;
 using Parts.Kitchen;
+using Parts.UI;
 using System;
 
 namespace Parts.Tests
@@ -28,12 +29,12 @@ namespace Parts.Tests
         {
             //set up
             ISubscriptions<ThreadSafeSubscriptions> subscriptions = new MySubscriptions();
-            ModelPartColouring colouring = new ModelPartColouring();
+            ModelPartColourData colouring = new ModelPartColourData();
             colouring.Colour = Color.White;
 
             //subscribe
             int calls = 0;
-            colouring.Subscribe(subscriptions, nameof(ModelPartColouring.Colour), () => calls += 1);
+            colouring.Subscribe(subscriptions, nameof(ModelPartColourData.Colour), () => calls += 1);
 
             //test
             colouring.Colour = Color.Orange;
@@ -48,10 +49,10 @@ namespace Parts.Tests
         {
             //set up
             KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
-            ModelPartColouring colouring = new ModelPartColouring();
+            ModelPartColourData colouring = new ModelPartColourData();
             colouring.Colour = Color.White;
             part.ColourData = colouring;
-            ColouredPartViewController view = new ColouredPartViewController();
+            ColouredPartController view = new ColouredPartController();
             view.SetModel(part);
 
             //test
@@ -80,10 +81,10 @@ namespace Parts.Tests
         {
             //set up
             KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
-            ModelPartColouring colouring = new ModelPartColouring();
+            ModelPartColourData colouring = new ModelPartColourData();
             colouring.Colour = Color.White;
             part.ColourData = colouring;
-            ColouredPartViewController view = new ColouredPartViewController();
+            ColouredPartController view = new ColouredPartController();
             view.SetModel(part);
 
             //test
@@ -99,16 +100,16 @@ namespace Parts.Tests
         public static void ShouldTriggerOwnGlobalEventWhenModelPartColouringChanged()
         {
             //set up
-            ModelPartColouring colouring = new ModelPartColouring();
+            ModelPartColourData colouring = new ModelPartColourData();
             colouring.Colour = Color.White;
 
             int calls = 0;
-            Action<ModelPartColouring> callback = (col) => { calls += 1; DebugUtils.AssertEquals(colouring, col, $"Invocation did not have right {nameof(ModelPartColouring)}"); };
-            ModelPartColouring.OnColourChangedGlobal.Add(callback);
+            Action<ModelPartColourData> callback = (col) => { calls += 1; DebugUtils.AssertEquals(colouring, col, $"Invocation did not have right {nameof(ModelPartColourData)}"); };
+            ModelPartColourData.OnColourChangedGlobal.Add(callback);
 
             //test
             colouring.Colour = Color.Orange;
-            ModelPartColouring.OnColourChangedGlobal.Remove(callback);
+            ModelPartColourData.OnColourChangedGlobal.Remove(callback);
             DebugUtils.AssertEquals(1, calls, "Global event did not fire correctly");
         }
         [CITest]
@@ -118,10 +119,10 @@ namespace Parts.Tests
             //set up
             KitchenBaseCabinetBoxItem part = new KitchenBaseCabinetBoxItem();
             ISubscriptions<ThreadSafeSubscriptions> subscriptions = new MySubscriptions();
-            ModelPartColouring colouring = new ModelPartColouring();
+            ModelPartColourData colouring = new ModelPartColourData();
             colouring.Colour = Color.White;
             part.ColourData = colouring;
-            ColouredPartViewController view = new ColouredPartViewController();
+            ColouredPartController view = new ColouredPartController();
             view.SetModel(part);
 
             int calls = 0;

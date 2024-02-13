@@ -16,6 +16,10 @@ using System.Linq;
 
 namespace Parts
 {
+    /// <summary>
+    /// Stores the list of slots on an instantiated world object.
+    /// It is an interface so that it can be migrated outside of Eco's migration system, which only works when new versions of the game are released and not when the mod is updated.
+    /// </summary>
     [Serialized]
     public interface IPartsContainer : IController, INotifyPropertyChanged
     {
@@ -30,8 +34,6 @@ namespace Parts
     [Serialized]
     public class PartsContainer : IPartsContainer, IClearRequestHandler
     {
-        //not used
-        [Serialized] public string Name { get; set; } = "Serialized Name";
         public IReadOnlyList<IPart> Parts => Slots.SelectNonNull(slot => slot.Part).ToList();
         [Serialized]
         private ThreadSafeList<ISlot> slots = new ThreadSafeList<ISlot> ();
@@ -42,7 +44,7 @@ namespace Parts
         /// </summary>
         [Notify] public ThreadSafeAction<ISlot> NewPartInSlotEvent { get; } = new ThreadSafeAction<ISlot> ();
         /// <summary>
-        /// Called when any part changes and property e.g. colour, or when any slot gains, loses or gets a different part
+        /// Called when any part changes and property e.g. colour, or when any slot gains, loses or gets a different part. This allows the WorldObject's tooltip to be updated.
         /// </summary>
         public static ThreadSafeAction<IPartsContainer> PartsContainerChangedEventGlobal { get; } = new ThreadSafeAction<IPartsContainer>();
         public PartsContainer() { }
@@ -65,6 +67,10 @@ namespace Parts
             }
         }
 
+        /// <summary>
+        /// Parent all the slots to this container and let any listeners know that this container is ready for business.
+        /// </summary>
+        /// <param name="worldObject"></param>
         public void Initialize(WorldObject worldObject)
         {
             foreach (ISlot slot in Slots)
@@ -82,6 +88,7 @@ namespace Parts
             PartsContainerChangedEventGlobal.Invoke(this);
         }
 
+        // Don't allow players to delete the persistent data, because that would delete the installed parts!
         public Result TryHandleClearRequest(Player player)
         {
             return Result.Fail(Localizer.DoStr("Cannot delete slots"));
@@ -93,17 +100,5 @@ namespace Parts
 
         public event PropertyChangedEventHandler PropertyChanged;
         #endregion
-    }
-    public static class PartsContainerExtensions
-    {
-        public static IPartsContainerSchema GenerateSchema(this IPartsContainer partsContainer)
-        {
-            List<ISlotDefinition> slotDefinitions = new List<ISlotDefinition>();
-            foreach(ISlot slot in partsContainer.Slots)
-            {
-                slotDefinitions.Add(slot.GenericDefinition);
-            }
-            return new PartsContainerSchema(slotDefinitions);
-        }
     }
 }

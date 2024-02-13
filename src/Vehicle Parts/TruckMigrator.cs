@@ -8,13 +8,13 @@ using System.Linq;
 
 namespace Parts.Vehicles
 {
-    public class TruckMigrator : RegularPartsContainerMigrator
+    public class TruckMigrator : DefaultPartsContainerMigrator
     {
         public TruckMigrator() : base()
         {
             SlotDefinitions = new SlotDefinitions()
             {
-                new RegularSlotDefinition()
+                new DefaultInventorySlotDefinition()
                 {
                     Name = "Storage Reinforcement",
                     Optional = true,
